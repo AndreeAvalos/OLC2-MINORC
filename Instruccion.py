@@ -21,7 +21,7 @@ class Main(Instruccion):
 class Metodo(Instruccion):
     def __init__(self, id, params, sentencias):
         self.id = id
-        self.parametros = params
+        self.params = params
         self.sentencias = sentencias
 
 class Funcion(Instruccion):
@@ -30,6 +30,12 @@ class Funcion(Instruccion):
         self.id = id
         self.parametros = params
         self.sentencias = sentencias
+
+class Llamada(Instruccion):
+    def __init__(self,id,params):
+        self.id = id
+        self.params = params
+
 
 class AsignacionSimple(Instruccion):
     def __init__(self, id, valor):

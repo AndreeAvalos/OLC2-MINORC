@@ -264,7 +264,7 @@ def p_metodo_params(p):
 
 def p_parametros(p):
     'parametros :   parametros COMA parametro '
-    p[1].append(p[2])
+    p[1].append(p[3])
     p[0] = p[1]
 
 def p_parametros2(p):
@@ -274,7 +274,7 @@ def p_parametros2(p):
 #faltaria los parametros con puntero
 def p_parametro(p):
     'parametro  :   tipo ID'
-    p[0] = p[1]
+    p[0] = p[2]
 
 
 def p_funcion(p):
@@ -302,6 +302,7 @@ def p_sentencia(p):
                     |   while
                     |   for
                     |   do_while
+                    |   callMetodo
                     |   error PYCOMA
                     |   error LLAVEDER
     '''
@@ -396,6 +397,22 @@ def p_incremento2(p):
     'incremento :   ID MENOS MENOS'
 def p_incremento(p):
     'incremento :   ID tipo_asignacion '
+def p_callMetodo(p):
+    'callMetodo :   ID PARIZQ PARDER PYCOMA'
+    p[0] = Llamada(p[1],None)
+
+def p_callMetodo2(p):
+    'callMetodo :   ID PARIZQ valores PARDER PYCOMA'
+    p[0] = Llamada(p[1],p[3])
+
+def p_valores(p):
+    'valores    :   valores COMA operacion'
+    p[1].append(p[3])
+    p[0] = p[1]
+
+def p_valores2(p):
+    'valores    :   operacion'
+    p[0] = [p[1]]
 
 def p_operaciones_logicas(p):
     '''operacion    :   operacion   AND             operacion

@@ -82,15 +82,15 @@ class Traducir(threading.Thread):
 
     def recolectar_main(self, instruccion):
         if not "main" in self.funciones:
-            self.funciones["main"] = instruccion.sentencias
+            self.funciones["main"] = {"tipo":"void","sentencias":instruccion.sentencias,"params":None}
 
     def recolectar_metodo(self, instruccion):
         if not instruccion.id in self.funciones:
-            self.funciones[instruccion.id] = instruccion.sentencias
+            self.funciones[instruccion.id] ={"tipo":"void","sentencias":instruccion.sentencias,"params":instruccion.params}
 
     def recolectar_funcion(self, instruccion):
         if not instruccion.id in self.funciones:
-            self.funciones[instruccion.id] = instruccion.sentencias
+            self.funciones[instruccion.id] ={"tipo":instruccion.tipo,"sentencias":instruccion.sentencias,"params":instruccion.params}
 
     def recolectar_declaraciones(self,instruccion):
         for instru in instruccion.declaraciones:
@@ -118,10 +118,15 @@ class Traducir(threading.Thread):
         
     def procesar(self):
         if "main" in self.funciones:
-            self.procesar_main(self.funciones["main"], self.ts)
+            self.procesar_main(self.funciones["main"]["sentencias"], self.ts)
     
     def procesar_main(self, sentencias, ts):
         self.etiqueta = "main"
+
+        new_cuadruplo = Cuadruplo("=","array()","","$s0")
+        self.cuadruplos.add(new_cuadruplo)
+        self.etiquetas[self.etiqueta].insert(0,new_cuadruplo)
+
         self.procesar_sentencias(sentencias, ts)
         '''local = TablaSimbolos()
         local.setPadre(ts)
@@ -330,11 +335,85 @@ class Traducir(threading.Thread):
         #procedemos a crear la etiqueta end en nuestra lista de etiquetas para cuadruplos
         self.etiquetas[new_end] = []
 
-
-
     
     def procesar_for(self,sentencia,ts):
         'aun no, ta muy feo xd'
+
+    def procesar_llamada(self, sentencia, ts):
+        #comprobamos si tiene parametros 
+        if sentencia.params:
+            
+            primero = True
+            for parametro in sentencia.params:
+                if primero:
+                    new_cuadruplo = Cuadruplo("=","0","","$sp")
+                    self.cuadruplos.add(new_cuadruplo)
+                    self.etiquetas[self.etiqueta].append(new_cuadruplo)
+                    primero = False
+                else:
+                    new_cuadruplo = Cuadruplo("+","$sp","1","$sp")
+                    self.cuadruplos.add(new_cuadruplo)
+                    self.etiquetas[self.etiqueta].append(new_cuadruplo)
+
+                last_temp = self.procesar_operacion(parametro,ts)
+                new_cuadruplo =Cuadruplo("=",last_temp,"","$s0[$sp]")
+                self.cuadruplos.add(new_cuadruplo)
+                self.etiquetas[self.etiqueta].append(new_cuadruplo)
+                
+        #comentario random
+        old_etiqueta = self.etiqueta
+        self.etiqueta = sentencia.id
+        new_etiqueta = self.generarEtiqueta()
+        self.etiquetas[new_etiqueta] = []
+        self.etiqueta = old_etiqueta
+        new_cuadruplo = Cuadruplo("goto",new_etiqueta,"","")
+        self.cuadruplos.add(new_cuadruplo)
+        self.etiquetas[self.etiqueta].append(new_cuadruplo)  
+        self.etiqueta = new_etiqueta
+        #otro comentario random
+        local = TablaSimbolos()
+        local.setPadre(ts.getPadre())
+
+        if sentencia.id in self.funciones:
+            sentencias = self.funciones[sentencia.id]["sentencias"]
+            params = self.funciones[sentencia.id]["params"]
+            if params!=None and sentencia.params!=None:
+                #comprobamos si tienen el mismo numero de valores en sus parametros
+                if len(params) == len(sentencia.params):
+                    #regresamos el apuntador hacia la primera posicion en la pila
+                    new_cuadruplo = Cuadruplo("-", "$sp",str(len(params)-1),"$sp")
+                    self.cuadruplos.add(new_cuadruplo)
+                    self.etiquetas[self.etiqueta].append(new_cuadruplo)
+                    #ahora asignamos los valores a una tabla local
+                    contar_aux = 1
+                    for param in params:
+                        temp = self.generarTemporal()
+                        new_simbol = Simbolo(param, temp, 0, 0)
+                        local.add(new_simbol)
+                        new_cuadruplo = Cuadruplo("=", "$s0[$sp]","",temp)
+                        self.cuadruplos.add(new_cuadruplo)
+                        self.etiquetas[self.etiqueta].append(new_cuadruplo)
+
+                        if contar_aux == len(params):
+                            ''
+                        else:
+                            new_cuadruplo = Cuadruplo("+", "$sp","1","$sp")
+                            self.cuadruplos.add(new_cuadruplo)
+                            self.etiquetas[self.etiqueta].append(new_cuadruplo)
+
+                        contar_aux+=1
+            
+            self.procesar_sentencias(sentencias,local)
+                
+
+        else:
+            'aqui deberiamos eliminar la etiqueta'
+            del self.etiquetas[self.etiqueta]
+            self.etiqueta = old_etiqueta
+
+
+
+
 
     def procesar_sentencias(self,sentencias, ts):
         local = TablaSimbolos()
@@ -346,6 +425,7 @@ class Traducir(threading.Thread):
             elif isinstance(sentencia,If):  self.procesar_if(sentencia,local)
             elif isinstance(sentencia,While): self.procesar_while(sentencia,local)
             elif isinstance(sentencia,DoWhile): self.procesar_doWhile(sentencia,local)
+            elif isinstance(sentencia, Llamada): self.procesar_llamada(sentencia,local)
         
 
 

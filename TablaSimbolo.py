@@ -17,6 +17,8 @@ class TablaSimbolos:
         return id in self.simbolos
     def setPadre(self, ts):
         self.padre = ts
+    def getPadre(self):
+        return self.padre
     def existePadre(self, id,ts):
         return self.__comprobar(id,ts)
     def __comprobar(self, id, ts):
