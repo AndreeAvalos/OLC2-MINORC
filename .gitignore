@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 ply/
+parser.out
+parsetab.py
+.vscode
 
 # C extensions
 *.so

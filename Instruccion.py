@@ -58,6 +58,18 @@ class While(Instruccion):
         self.condicion = condicion
         self.sentencias = sentencias
 
+class DoWhile(Instruccion):
+    def __init__(self, condicion, sentencias):
+        self.condicion = condicion
+        self.sentencias = sentencias
+
+class For(Instruccion):
+    def __init__(self, inicializacion, condicion, incremento, sentencias):
+        self.inicializacion = inicializacion
+        self.condicion = condicion
+        self.incremento = incremento
+        self.sentencias = sentencias
+
 class OperacionAsignacion(Instruccion):
     def __init__(self, operacion, op1):
         self.operadorIzq = op1

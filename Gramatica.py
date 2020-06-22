@@ -26,7 +26,8 @@ reservadas = {
     'switch': 'SWITCH',
     'void':'VOID',
     'register': 'REGISTER',
-    'goto': 'GOTO'
+    'goto': 'GOTO',
+    'scanf': 'SCAN'
 }
 
 tokens = [
@@ -223,7 +224,7 @@ def p_instruccion(p):
                     |   main
                     |   metodo
                     |   error PYCOMA
-                    |   error LLAVEIZQ
+                    |   error LLAVEDER
     '''
     p[0] = p[1]
 
@@ -299,6 +300,10 @@ def p_sentencia(p):
                     |   asignacion 
                     |   if
                     |   while
+                    |   for
+                    |   do_while
+                    |   error PYCOMA
+                    |   error LLAVEDER
     '''
     p[0] = p[1]
 
@@ -372,7 +377,25 @@ def p_while(p):
     'while  :   WHILE PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER'
     p[0]= While(p[3],p[6])
 
+def p_do_while(p):
+    'do_while   :   DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA '
+    p[0] = DoWhile(p[7],p[3])
 
+def p_for(p):
+    'for    :   FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER'
+
+def p_inicializacion(p):
+    'inicializacion :   tipo ID IGUAL operacion '
+
+def p_inicializacion2(p):
+    'inicializacion :   ID IGUAL operacion '
+
+def p_incremento(p):
+    'incremento :   ID MAS MAS '
+def p_incremento2(p):
+    'incremento :   ID MENOS MENOS'
+def p_incremento(p):
+    'incremento :   ID tipo_asignacion '
 
 def p_operaciones_logicas(p):
     '''operacion    :   operacion   AND             operacion
