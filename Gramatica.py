@@ -297,6 +297,8 @@ def p_sentencias2(p):
 def p_sentencia(p):
     '''sentencia    :   declaracion
                     |   asignacion 
+                    |   if
+                    |   while
     '''
     p[0] = p[1]
 
@@ -323,6 +325,53 @@ def p_tipo_asignacion(p):
                         |      XORIGUAL        operacion
     '''
     p[0] = OperacionAsignacion(p[1],p[2])
+
+#if simple
+def p_if(p):
+    'if :   IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER'
+    s_if = SentenciaIf(p[3],p[6])
+    p[0] = If(s_if,None,None)
+#if con else simple
+def p_if_else(p):
+    'if :   IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER ELSE LLAVEIZQ sentencias LLAVEDER'
+    s_if = SentenciaIf(p[3],p[6])
+    s_else = SentenciaIf(None,p[10])
+    p[0] = If(s_if,None,s_else)
+#if con else if pero sin else
+def p_if_elseif(p):
+    'if :   IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER else_if'
+    s_if = SentenciaIf(p[3],p[6])
+    s_elif = p[8]
+    p[0] = If(s_if,s_elif,None)
+
+#listados de if
+def p_else_if(p):
+    'else_if    :   else_if elif'
+    p[1].append(p[2])
+    p[0]=p[1]
+
+#un unico else if 
+def p_else_if2(p):
+    'else_if    :   elif'
+    p[0] = [p[1]]
+
+#sentencia else if
+def p_elif(p):
+    'elif   :   ELSE IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER '
+    p[0] = SentenciaIf(p[4],p[7])
+
+#if con elseif y else
+def p_if_elseif_else(p):
+    'if :   IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER else_if ELSE LLAVEIZQ sentencias LLAVEDER'
+    s_if = SentenciaIf(p[3],p[6])
+    s_elif = p[8]
+    s_else = SentenciaIf(None,p[11])
+    p[0] = If(s_if,s_elif,s_else)
+
+def p_while(p):
+    'while  :   WHILE PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER'
+    p[0]= While(p[3],p[6])
+
 
 
 def p_operaciones_logicas(p):

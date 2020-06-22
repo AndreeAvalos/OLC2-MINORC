@@ -42,6 +42,22 @@ class AsignacionCompuesta(Instruccion):
         self.operadorIzq = op1
         self.operacion = operacion
 
+class If(Instruccion):
+    def __init__(self,s_if, s_elif, s_else ):
+        self.s_if = s_if #sentencia if
+        self.s_elif = s_elif #lista de sentencias if
+        self.s_else = s_else #sentencia else
+    
+class SentenciaIf(Instruccion):
+    def __init__(self, condicion, sentencias):
+        self.condicion = condicion
+        self.sentencias = sentencias
+        
+class While(Instruccion):
+    def __init__(self, condicion, sentencias):
+        self.condicion = condicion
+        self.sentencias = sentencias
+
 class OperacionAsignacion(Instruccion):
     def __init__(self, operacion, op1):
         self.operadorIzq = op1
