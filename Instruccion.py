@@ -76,6 +76,18 @@ class For(Instruccion):
         self.incremento = incremento
         self.sentencias = sentencias
 
+class Switch(Instruccion):
+    def __init__(self, condicion,casos):
+        self.condicion = condicion
+        self.casos = casos
+
+class Case(Instruccion):
+    def __init__(self, operacion, sentencias):
+        self.operacion = operacion
+        self.sentencias = sentencias
+        
+
+
 class OperacionAsignacion(Instruccion):
     def __init__(self, operacion, op1):
         self.operadorIzq = op1

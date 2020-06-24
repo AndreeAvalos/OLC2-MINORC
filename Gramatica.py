@@ -221,6 +221,7 @@ def p_instrucciones2(p):
 
 def p_instruccion(p):
     '''instruccion  :   declaracion
+                    |   asignacion
                     |   main
                     |   metodo
                     |   error PYCOMA
@@ -302,6 +303,8 @@ def p_sentencia(p):
                     |   while
                     |   for
                     |   do_while
+                    |   switch
+                    |   break
                     |   callMetodo
                     |   error PYCOMA
                     |   error LLAVEDER
@@ -414,6 +417,30 @@ def p_valores2(p):
     'valores    :   operacion'
     p[0] = [p[1]]
 
+def p_switch(p):
+    'switch :   SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER'
+    p[0]= Switch(p[3],p[6])
+
+def p_casos(p):
+    'casos  :   casos caso'
+    p[1].append(p[2])
+    p[0]=p[1]
+
+def p_casos2(p):
+    'casos  :   caso'
+    p[0] = [p[1]]
+
+
+def p_caso(p):
+    'caso   :   CASE operacion DOSPUNTOS sentencias'
+    p[0] = Case(p[2],p[4])
+
+def p_caso2(p):
+    'caso   :   DEFAULT DOSPUNTOS sentencias'
+    p[0] = Case(None, p[3])
+
+def p_break(P):
+    'break  :   BREAK'
 def p_operaciones_logicas(p):
     '''operacion    :   operacion   AND             operacion
                     |   operacion   OR              operacion 
