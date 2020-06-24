@@ -320,7 +320,6 @@ def p_asignacion2(p):
     'asignacion     :   ID tipo_asignacion PYCOMA'
     p[0] = AsignacionCompuesta(p[1],p[2].operadorIzq,p[2].operacion)
 
-
 def p_tipo_asignacion(p):
     '''tipo_asignacion  :      MASIGUAL        operacion
                         |      MENOSIGUAL      operacion
@@ -334,7 +333,6 @@ def p_tipo_asignacion(p):
                         |      XORIGUAL        operacion
     '''
     p[0] = OperacionAsignacion(p[1],p[2])
-
 #if simple
 def p_if(p):
     'if :   IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER'
@@ -358,7 +356,6 @@ def p_else_if(p):
     'else_if    :   else_if elif'
     p[1].append(p[2])
     p[0]=p[1]
-
 #un unico else if 
 def p_else_if2(p):
     'else_if    :   elif'
@@ -439,8 +436,10 @@ def p_caso2(p):
     'caso   :   DEFAULT DOSPUNTOS sentencias'
     p[0] = Case(None, p[3])
 
-def p_break(P):
-    'break  :   BREAK'
+def p_break(p):
+    'break  :   BREAK PYCOMA'
+    p[0] = Break()
+
 def p_operaciones_logicas(p):
     '''operacion    :   operacion   AND             operacion
                     |   operacion   OR              operacion 

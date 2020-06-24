@@ -86,7 +86,9 @@ class Case(Instruccion):
         self.operacion = operacion
         self.sentencias = sentencias
         
-
+class Break(Instruccion):
+    def __init__(self):
+        super().__init__()
 
 class OperacionAsignacion(Instruccion):
     def __init__(self, operacion, op1):

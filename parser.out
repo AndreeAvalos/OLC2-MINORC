@@ -89,7 +89,7 @@ Rule 67    casos -> casos caso
 Rule 68    casos -> caso
 Rule 69    caso -> CASE operacion DOSPUNTOS sentencias
 Rule 70    caso -> DEFAULT DOSPUNTOS sentencias
-Rule 71    break -> BREAK
+Rule 71    break -> BREAK PYCOMA
 Rule 72    operacion -> operacion AND operacion
 Rule 73    operacion -> operacion OR operacion
 Rule 74    operacion -> operacion IGUALIGUAL operacion
@@ -183,7 +183,7 @@ PARDER               : 15 16 17 21 22 48 49 50 53 54 55 56 57 62 63 66
 PARIZQ               : 15 16 17 21 22 48 49 50 53 54 55 56 57 62 63 66
 PRINT                : 
 PUNTO                : 
-PYCOMA               : 8 10 34 36 37 56 57 57 62 63
+PYCOMA               : 8 10 34 36 37 56 57 57 62 63 71
 REGISTER             : 
 RETURN               : 
 SCAN                 : 
@@ -4465,7 +4465,7 @@ state 113
     (57) for -> . FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
     (56) do_while -> . DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
     (66) switch -> . SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER
-    (71) break -> . BREAK
+    (71) break -> . BREAK PYCOMA
     (62) callMetodo -> . ID PARIZQ PARDER PYCOMA
     (63) callMetodo -> . ID PARIZQ valores PARDER PYCOMA
     (95) tipo -> . INTEGER
@@ -4527,7 +4527,7 @@ state 114
     (57) for -> . FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
     (56) do_while -> . DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
     (66) switch -> . SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER
-    (71) break -> . BREAK
+    (71) break -> . BREAK PYCOMA
     (62) callMetodo -> . ID PARIZQ PARDER PYCOMA
     (63) callMetodo -> . ID PARIZQ valores PARDER PYCOMA
     (95) tipo -> . INTEGER
@@ -4666,7 +4666,7 @@ state 119
     (57) for -> . FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
     (56) do_while -> . DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
     (66) switch -> . SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER
-    (71) break -> . BREAK
+    (71) break -> . BREAK PYCOMA
     (62) callMetodo -> . ID PARIZQ PARDER PYCOMA
     (63) callMetodo -> . ID PARIZQ valores PARDER PYCOMA
     (95) tipo -> . INTEGER
@@ -4994,23 +4994,9 @@ state 136
 
 state 137
 
-    (71) break -> BREAK .
+    (71) break -> BREAK . PYCOMA
 
-    LLAVEDER        reduce using rule 71 (break -> BREAK .)
-    error           reduce using rule 71 (break -> BREAK .)
-    ID              reduce using rule 71 (break -> BREAK .)
-    IF              reduce using rule 71 (break -> BREAK .)
-    WHILE           reduce using rule 71 (break -> BREAK .)
-    FOR             reduce using rule 71 (break -> BREAK .)
-    DO              reduce using rule 71 (break -> BREAK .)
-    SWITCH          reduce using rule 71 (break -> BREAK .)
-    BREAK           reduce using rule 71 (break -> BREAK .)
-    INTEGER         reduce using rule 71 (break -> BREAK .)
-    FLOAT           reduce using rule 71 (break -> BREAK .)
-    DOUBLE          reduce using rule 71 (break -> BREAK .)
-    CHAR            reduce using rule 71 (break -> BREAK .)
-    CASE            reduce using rule 71 (break -> BREAK .)
-    DEFAULT         reduce using rule 71 (break -> BREAK .)
+    PYCOMA          shift and go to state 152
 
 
 state 138
@@ -5039,7 +5025,7 @@ state 138
     (57) for -> . FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
     (56) do_while -> . DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
     (66) switch -> . SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER
-    (71) break -> . BREAK
+    (71) break -> . BREAK PYCOMA
     (62) callMetodo -> . ID PARIZQ PARDER PYCOMA
     (63) callMetodo -> . ID PARIZQ valores PARDER PYCOMA
     (95) tipo -> . INTEGER
@@ -5048,7 +5034,7 @@ state 138
     (98) tipo -> . CHAR
     (99) tipo -> . ID
 
-    LLAVEDER        shift and go to state 152
+    LLAVEDER        shift and go to state 153
     error           shift and go to state 130
     ID              shift and go to state 131
     IF              shift and go to state 132
@@ -5101,7 +5087,7 @@ state 139
     (57) for -> . FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
     (56) do_while -> . DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
     (66) switch -> . SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER
-    (71) break -> . BREAK
+    (71) break -> . BREAK PYCOMA
     (62) callMetodo -> . ID PARIZQ PARDER PYCOMA
     (63) callMetodo -> . ID PARIZQ valores PARDER PYCOMA
     (95) tipo -> . INTEGER
@@ -5123,7 +5109,7 @@ state 139
     DOUBLE          shift and go to state 14
     CHAR            shift and go to state 15
 
-    sentencias                     shift and go to state 153
+    sentencias                     shift and go to state 154
     sentencia                      shift and go to state 120
     declaracion                    shift and go to state 121
     asignacion                     shift and go to state 122
@@ -5343,7 +5329,7 @@ state 146
     (103) valor -> . CARACTER
     (104) valor -> . CADENA
 
-    PARDER          shift and go to state 154
+    PARDER          shift and go to state 155
     MENOS           shift and go to state 41
     NOT             shift and go to state 42
     NOTBIT          shift and go to state 43
@@ -5353,8 +5339,8 @@ state 146
     CARACTER        shift and go to state 47
     CADENA          shift and go to state 48
 
-    valores                        shift and go to state 155
-    operacion                      shift and go to state 156
+    valores                        shift and go to state 156
+    operacion                      shift and go to state 157
     valor                          shift and go to state 44
 
 state 147
@@ -5401,7 +5387,7 @@ state 147
     CARACTER        shift and go to state 47
     CADENA          shift and go to state 48
 
-    operacion                      shift and go to state 157
+    operacion                      shift and go to state 158
     valor                          shift and go to state 44
 
 state 148
@@ -5445,7 +5431,7 @@ state 148
     CARACTER        shift and go to state 47
     CADENA          shift and go to state 48
 
-    operacion                      shift and go to state 158
+    operacion                      shift and go to state 159
     valor                          shift and go to state 44
 
 state 149
@@ -5459,14 +5445,14 @@ state 149
     (98) tipo -> . CHAR
     (99) tipo -> . ID
 
-    ID              shift and go to state 161
+    ID              shift and go to state 162
     INTEGER         shift and go to state 93
     FLOAT           shift and go to state 13
     DOUBLE          shift and go to state 14
     CHAR            shift and go to state 15
 
-    inicializacion                 shift and go to state 159
-    tipo                           shift and go to state 160
+    inicializacion                 shift and go to state 160
+    tipo                           shift and go to state 161
 
 state 150
 
@@ -5495,7 +5481,7 @@ state 150
     (57) for -> . FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
     (56) do_while -> . DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
     (66) switch -> . SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER
-    (71) break -> . BREAK
+    (71) break -> . BREAK PYCOMA
     (62) callMetodo -> . ID PARIZQ PARDER PYCOMA
     (63) callMetodo -> . ID PARIZQ valores PARDER PYCOMA
     (95) tipo -> . INTEGER
@@ -5517,7 +5503,7 @@ state 150
     DOUBLE          shift and go to state 14
     CHAR            shift and go to state 15
 
-    sentencias                     shift and go to state 162
+    sentencias                     shift and go to state 163
     sentencia                      shift and go to state 120
     declaracion                    shift and go to state 121
     asignacion                     shift and go to state 122
@@ -5571,10 +5557,31 @@ state 151
     CARACTER        shift and go to state 47
     CADENA          shift and go to state 48
 
-    operacion                      shift and go to state 163
+    operacion                      shift and go to state 164
     valor                          shift and go to state 44
 
 state 152
+
+    (71) break -> BREAK PYCOMA .
+
+    LLAVEDER        reduce using rule 71 (break -> BREAK PYCOMA .)
+    error           reduce using rule 71 (break -> BREAK PYCOMA .)
+    ID              reduce using rule 71 (break -> BREAK PYCOMA .)
+    IF              reduce using rule 71 (break -> BREAK PYCOMA .)
+    WHILE           reduce using rule 71 (break -> BREAK PYCOMA .)
+    FOR             reduce using rule 71 (break -> BREAK PYCOMA .)
+    DO              reduce using rule 71 (break -> BREAK PYCOMA .)
+    SWITCH          reduce using rule 71 (break -> BREAK PYCOMA .)
+    BREAK           reduce using rule 71 (break -> BREAK PYCOMA .)
+    INTEGER         reduce using rule 71 (break -> BREAK PYCOMA .)
+    FLOAT           reduce using rule 71 (break -> BREAK PYCOMA .)
+    DOUBLE          reduce using rule 71 (break -> BREAK PYCOMA .)
+    CHAR            reduce using rule 71 (break -> BREAK PYCOMA .)
+    CASE            reduce using rule 71 (break -> BREAK PYCOMA .)
+    DEFAULT         reduce using rule 71 (break -> BREAK PYCOMA .)
+
+
+state 153
 
     (16) metodo -> VOID ID PARIZQ PARDER LLAVEIZQ sentencias LLAVEDER .
 
@@ -5588,7 +5595,7 @@ state 152
     $end            reduce using rule 16 (metodo -> VOID ID PARIZQ PARDER LLAVEIZQ sentencias LLAVEDER .)
 
 
-state 153
+state 154
 
     (17) metodo -> VOID ID PARIZQ parametros PARDER LLAVEIZQ sentencias . LLAVEDER
     (23) sentencias -> sentencias . sentencia
@@ -5614,7 +5621,7 @@ state 153
     (57) for -> . FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
     (56) do_while -> . DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
     (66) switch -> . SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER
-    (71) break -> . BREAK
+    (71) break -> . BREAK PYCOMA
     (62) callMetodo -> . ID PARIZQ PARDER PYCOMA
     (63) callMetodo -> . ID PARIZQ valores PARDER PYCOMA
     (95) tipo -> . INTEGER
@@ -5623,7 +5630,7 @@ state 153
     (98) tipo -> . CHAR
     (99) tipo -> . ID
 
-    LLAVEDER        shift and go to state 164
+    LLAVEDER        shift and go to state 165
     error           shift and go to state 130
     ID              shift and go to state 131
     IF              shift and go to state 132
@@ -5649,23 +5656,23 @@ state 153
     callMetodo                     shift and go to state 129
     tipo                           shift and go to state 9
 
-state 154
+state 155
 
     (62) callMetodo -> ID PARIZQ PARDER . PYCOMA
 
-    PYCOMA          shift and go to state 165
+    PYCOMA          shift and go to state 166
 
 
-state 155
+state 156
 
     (63) callMetodo -> ID PARIZQ valores . PARDER PYCOMA
     (64) valores -> valores . COMA operacion
 
-    PARDER          shift and go to state 166
-    COMA            shift and go to state 167
+    PARDER          shift and go to state 167
+    COMA            shift and go to state 168
 
 
-state 156
+state 157
 
     (65) valores -> operacion .
     (72) operacion -> operacion . AND operacion
@@ -5711,57 +5718,12 @@ state 156
     INTERROGACION   shift and go to state 83
 
 
-state 157
+state 158
 
     (48) if -> IF PARIZQ operacion . PARDER LLAVEIZQ sentencias LLAVEDER
     (49) if -> IF PARIZQ operacion . PARDER LLAVEIZQ sentencias LLAVEDER ELSE LLAVEIZQ sentencias LLAVEDER
     (50) if -> IF PARIZQ operacion . PARDER LLAVEIZQ sentencias LLAVEDER else_if
     (54) if -> IF PARIZQ operacion . PARDER LLAVEIZQ sentencias LLAVEDER else_if ELSE LLAVEIZQ sentencias LLAVEDER
-    (72) operacion -> operacion . AND operacion
-    (73) operacion -> operacion . OR operacion
-    (74) operacion -> operacion . IGUALIGUAL operacion
-    (75) operacion -> operacion . DIFERENTE operacion
-    (76) operacion -> operacion . MAYOR operacion
-    (77) operacion -> operacion . MENOR operacion
-    (78) operacion -> operacion . MAYORIGUAL operacion
-    (79) operacion -> operacion . MENORIGUAL operacion
-    (80) operacion -> operacion . ANDBIT operacion
-    (81) operacion -> operacion . ORBIT operacion
-    (82) operacion -> operacion . XORBIT operacion
-    (83) operacion -> operacion . SHIFTIZQ operacion
-    (84) operacion -> operacion . SHIFTDER operacion
-    (85) operacion -> operacion . MAS operacion
-    (86) operacion -> operacion . MENOS operacion
-    (87) operacion -> operacion . MULTIPLICACION operacion
-    (88) operacion -> operacion . DIVISION operacion
-    (89) operacion -> operacion . MODULAR operacion
-    (90) operacion -> operacion . INTERROGACION operacion DOSPUNTOS operacion
-
-    PARDER          shift and go to state 168
-    AND             shift and go to state 65
-    OR              shift and go to state 66
-    IGUALIGUAL      shift and go to state 67
-    DIFERENTE       shift and go to state 68
-    MAYOR           shift and go to state 69
-    MENOR           shift and go to state 70
-    MAYORIGUAL      shift and go to state 71
-    MENORIGUAL      shift and go to state 72
-    ANDBIT          shift and go to state 73
-    ORBIT           shift and go to state 74
-    XORBIT          shift and go to state 75
-    SHIFTIZQ        shift and go to state 76
-    SHIFTDER        shift and go to state 77
-    MAS             shift and go to state 78
-    MENOS           shift and go to state 79
-    MULTIPLICACION  shift and go to state 80
-    DIVISION        shift and go to state 81
-    MODULAR         shift and go to state 82
-    INTERROGACION   shift and go to state 83
-
-
-state 158
-
-    (55) while -> WHILE PARIZQ operacion . PARDER LLAVEIZQ sentencias LLAVEDER
     (72) operacion -> operacion . AND operacion
     (73) operacion -> operacion . OR operacion
     (74) operacion -> operacion . IGUALIGUAL operacion
@@ -5806,28 +5768,73 @@ state 158
 
 state 159
 
-    (57) for -> FOR PARIZQ inicializacion . PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
+    (55) while -> WHILE PARIZQ operacion . PARDER LLAVEIZQ sentencias LLAVEDER
+    (72) operacion -> operacion . AND operacion
+    (73) operacion -> operacion . OR operacion
+    (74) operacion -> operacion . IGUALIGUAL operacion
+    (75) operacion -> operacion . DIFERENTE operacion
+    (76) operacion -> operacion . MAYOR operacion
+    (77) operacion -> operacion . MENOR operacion
+    (78) operacion -> operacion . MAYORIGUAL operacion
+    (79) operacion -> operacion . MENORIGUAL operacion
+    (80) operacion -> operacion . ANDBIT operacion
+    (81) operacion -> operacion . ORBIT operacion
+    (82) operacion -> operacion . XORBIT operacion
+    (83) operacion -> operacion . SHIFTIZQ operacion
+    (84) operacion -> operacion . SHIFTDER operacion
+    (85) operacion -> operacion . MAS operacion
+    (86) operacion -> operacion . MENOS operacion
+    (87) operacion -> operacion . MULTIPLICACION operacion
+    (88) operacion -> operacion . DIVISION operacion
+    (89) operacion -> operacion . MODULAR operacion
+    (90) operacion -> operacion . INTERROGACION operacion DOSPUNTOS operacion
 
-    PYCOMA          shift and go to state 170
+    PARDER          shift and go to state 170
+    AND             shift and go to state 65
+    OR              shift and go to state 66
+    IGUALIGUAL      shift and go to state 67
+    DIFERENTE       shift and go to state 68
+    MAYOR           shift and go to state 69
+    MENOR           shift and go to state 70
+    MAYORIGUAL      shift and go to state 71
+    MENORIGUAL      shift and go to state 72
+    ANDBIT          shift and go to state 73
+    ORBIT           shift and go to state 74
+    XORBIT          shift and go to state 75
+    SHIFTIZQ        shift and go to state 76
+    SHIFTDER        shift and go to state 77
+    MAS             shift and go to state 78
+    MENOS           shift and go to state 79
+    MULTIPLICACION  shift and go to state 80
+    DIVISION        shift and go to state 81
+    MODULAR         shift and go to state 82
+    INTERROGACION   shift and go to state 83
 
 
 state 160
 
-    (58) inicializacion -> tipo . ID IGUAL operacion
+    (57) for -> FOR PARIZQ inicializacion . PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
 
-    ID              shift and go to state 171
+    PYCOMA          shift and go to state 171
 
 
 state 161
 
-    (59) inicializacion -> ID . IGUAL operacion
-    (99) tipo -> ID .
+    (58) inicializacion -> tipo . ID IGUAL operacion
 
-    IGUAL           shift and go to state 172
-    ID              reduce using rule 99 (tipo -> ID .)
+    ID              shift and go to state 172
 
 
 state 162
+
+    (59) inicializacion -> ID . IGUAL operacion
+    (99) tipo -> ID .
+
+    IGUAL           shift and go to state 173
+    ID              reduce using rule 99 (tipo -> ID .)
+
+
+state 163
 
     (56) do_while -> DO LLAVEIZQ sentencias . LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
     (23) sentencias -> sentencias . sentencia
@@ -5853,7 +5860,7 @@ state 162
     (57) for -> . FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
     (56) do_while -> . DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
     (66) switch -> . SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER
-    (71) break -> . BREAK
+    (71) break -> . BREAK PYCOMA
     (62) callMetodo -> . ID PARIZQ PARDER PYCOMA
     (63) callMetodo -> . ID PARIZQ valores PARDER PYCOMA
     (95) tipo -> . INTEGER
@@ -5862,7 +5869,7 @@ state 162
     (98) tipo -> . CHAR
     (99) tipo -> . ID
 
-    LLAVEDER        shift and go to state 173
+    LLAVEDER        shift and go to state 174
     error           shift and go to state 130
     ID              shift and go to state 131
     IF              shift and go to state 132
@@ -5888,7 +5895,7 @@ state 162
     callMetodo                     shift and go to state 129
     tipo                           shift and go to state 9
 
-state 163
+state 164
 
     (66) switch -> SWITCH PARIZQ operacion . PARDER LLAVEIZQ casos LLAVEDER
     (72) operacion -> operacion . AND operacion
@@ -5911,7 +5918,7 @@ state 163
     (89) operacion -> operacion . MODULAR operacion
     (90) operacion -> operacion . INTERROGACION operacion DOSPUNTOS operacion
 
-    PARDER          shift and go to state 174
+    PARDER          shift and go to state 175
     AND             shift and go to state 65
     OR              shift and go to state 66
     IGUALIGUAL      shift and go to state 67
@@ -5933,7 +5940,7 @@ state 163
     INTERROGACION   shift and go to state 83
 
 
-state 164
+state 165
 
     (17) metodo -> VOID ID PARIZQ parametros PARDER LLAVEIZQ sentencias LLAVEDER .
 
@@ -5947,7 +5954,7 @@ state 164
     $end            reduce using rule 17 (metodo -> VOID ID PARIZQ parametros PARDER LLAVEIZQ sentencias LLAVEDER .)
 
 
-state 165
+state 166
 
     (62) callMetodo -> ID PARIZQ PARDER PYCOMA .
 
@@ -5968,14 +5975,14 @@ state 165
     DEFAULT         reduce using rule 62 (callMetodo -> ID PARIZQ PARDER PYCOMA .)
 
 
-state 166
+state 167
 
     (63) callMetodo -> ID PARIZQ valores PARDER . PYCOMA
 
-    PYCOMA          shift and go to state 175
+    PYCOMA          shift and go to state 176
 
 
-state 167
+state 168
 
     (64) valores -> valores COMA . operacion
     (72) operacion -> . operacion AND operacion
@@ -6016,27 +6023,27 @@ state 167
     CARACTER        shift and go to state 47
     CADENA          shift and go to state 48
 
-    operacion                      shift and go to state 176
+    operacion                      shift and go to state 177
     valor                          shift and go to state 44
 
-state 168
+state 169
 
     (48) if -> IF PARIZQ operacion PARDER . LLAVEIZQ sentencias LLAVEDER
     (49) if -> IF PARIZQ operacion PARDER . LLAVEIZQ sentencias LLAVEDER ELSE LLAVEIZQ sentencias LLAVEDER
     (50) if -> IF PARIZQ operacion PARDER . LLAVEIZQ sentencias LLAVEDER else_if
     (54) if -> IF PARIZQ operacion PARDER . LLAVEIZQ sentencias LLAVEDER else_if ELSE LLAVEIZQ sentencias LLAVEDER
 
-    LLAVEIZQ        shift and go to state 177
-
-
-state 169
-
-    (55) while -> WHILE PARIZQ operacion PARDER . LLAVEIZQ sentencias LLAVEDER
-
     LLAVEIZQ        shift and go to state 178
 
 
 state 170
+
+    (55) while -> WHILE PARIZQ operacion PARDER . LLAVEIZQ sentencias LLAVEDER
+
+    LLAVEIZQ        shift and go to state 179
+
+
+state 171
 
     (57) for -> FOR PARIZQ inicializacion PYCOMA . operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
     (72) operacion -> . operacion AND operacion
@@ -6077,17 +6084,17 @@ state 170
     CARACTER        shift and go to state 47
     CADENA          shift and go to state 48
 
-    operacion                      shift and go to state 179
+    operacion                      shift and go to state 180
     valor                          shift and go to state 44
 
-state 171
+state 172
 
     (58) inicializacion -> tipo ID . IGUAL operacion
 
-    IGUAL           shift and go to state 180
+    IGUAL           shift and go to state 181
 
 
-state 172
+state 173
 
     (59) inicializacion -> ID IGUAL . operacion
     (72) operacion -> . operacion AND operacion
@@ -6128,24 +6135,24 @@ state 172
     CARACTER        shift and go to state 47
     CADENA          shift and go to state 48
 
-    operacion                      shift and go to state 181
+    operacion                      shift and go to state 182
     valor                          shift and go to state 44
-
-state 173
-
-    (56) do_while -> DO LLAVEIZQ sentencias LLAVEDER . WHILE PARIZQ operacion PARDER PYCOMA
-
-    WHILE           shift and go to state 182
-
 
 state 174
 
-    (66) switch -> SWITCH PARIZQ operacion PARDER . LLAVEIZQ casos LLAVEDER
+    (56) do_while -> DO LLAVEIZQ sentencias LLAVEDER . WHILE PARIZQ operacion PARDER PYCOMA
 
-    LLAVEIZQ        shift and go to state 183
+    WHILE           shift and go to state 183
 
 
 state 175
+
+    (66) switch -> SWITCH PARIZQ operacion PARDER . LLAVEIZQ casos LLAVEDER
+
+    LLAVEIZQ        shift and go to state 184
+
+
+state 176
 
     (63) callMetodo -> ID PARIZQ valores PARDER PYCOMA .
 
@@ -6166,7 +6173,7 @@ state 175
     DEFAULT         reduce using rule 63 (callMetodo -> ID PARIZQ valores PARDER PYCOMA .)
 
 
-state 176
+state 177
 
     (64) valores -> valores COMA operacion .
     (72) operacion -> operacion . AND operacion
@@ -6212,7 +6219,7 @@ state 176
     INTERROGACION   shift and go to state 83
 
 
-state 177
+state 178
 
     (48) if -> IF PARIZQ operacion PARDER LLAVEIZQ . sentencias LLAVEDER
     (49) if -> IF PARIZQ operacion PARDER LLAVEIZQ . sentencias LLAVEDER ELSE LLAVEIZQ sentencias LLAVEDER
@@ -6242,69 +6249,7 @@ state 177
     (57) for -> . FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
     (56) do_while -> . DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
     (66) switch -> . SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER
-    (71) break -> . BREAK
-    (62) callMetodo -> . ID PARIZQ PARDER PYCOMA
-    (63) callMetodo -> . ID PARIZQ valores PARDER PYCOMA
-    (95) tipo -> . INTEGER
-    (96) tipo -> . FLOAT
-    (97) tipo -> . DOUBLE
-    (98) tipo -> . CHAR
-    (99) tipo -> . ID
-
-    error           shift and go to state 130
-    ID              shift and go to state 131
-    IF              shift and go to state 132
-    WHILE           shift and go to state 133
-    FOR             shift and go to state 134
-    DO              shift and go to state 135
-    SWITCH          shift and go to state 136
-    BREAK           shift and go to state 137
-    INTEGER         shift and go to state 93
-    FLOAT           shift and go to state 13
-    DOUBLE          shift and go to state 14
-    CHAR            shift and go to state 15
-
-    sentencias                     shift and go to state 184
-    sentencia                      shift and go to state 120
-    declaracion                    shift and go to state 121
-    asignacion                     shift and go to state 122
-    if                             shift and go to state 123
-    while                          shift and go to state 124
-    for                            shift and go to state 125
-    do_while                       shift and go to state 126
-    switch                         shift and go to state 127
-    break                          shift and go to state 128
-    callMetodo                     shift and go to state 129
-    tipo                           shift and go to state 9
-
-state 178
-
-    (55) while -> WHILE PARIZQ operacion PARDER LLAVEIZQ . sentencias LLAVEDER
-    (23) sentencias -> . sentencias sentencia
-    (24) sentencias -> . sentencia
-    (25) sentencia -> . declaracion
-    (26) sentencia -> . asignacion
-    (27) sentencia -> . if
-    (28) sentencia -> . while
-    (29) sentencia -> . for
-    (30) sentencia -> . do_while
-    (31) sentencia -> . switch
-    (32) sentencia -> . break
-    (33) sentencia -> . callMetodo
-    (34) sentencia -> . error PYCOMA
-    (35) sentencia -> . error LLAVEDER
-    (10) declaracion -> . tipo declaraciones PYCOMA
-    (36) asignacion -> . ID IGUAL operacion PYCOMA
-    (37) asignacion -> . ID tipo_asignacion PYCOMA
-    (48) if -> . IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER
-    (49) if -> . IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER ELSE LLAVEIZQ sentencias LLAVEDER
-    (50) if -> . IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER else_if
-    (54) if -> . IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER else_if ELSE LLAVEIZQ sentencias LLAVEDER
-    (55) while -> . WHILE PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER
-    (57) for -> . FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
-    (56) do_while -> . DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
-    (66) switch -> . SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER
-    (71) break -> . BREAK
+    (71) break -> . BREAK PYCOMA
     (62) callMetodo -> . ID PARIZQ PARDER PYCOMA
     (63) callMetodo -> . ID PARIZQ valores PARDER PYCOMA
     (95) tipo -> . INTEGER
@@ -6341,6 +6286,68 @@ state 178
 
 state 179
 
+    (55) while -> WHILE PARIZQ operacion PARDER LLAVEIZQ . sentencias LLAVEDER
+    (23) sentencias -> . sentencias sentencia
+    (24) sentencias -> . sentencia
+    (25) sentencia -> . declaracion
+    (26) sentencia -> . asignacion
+    (27) sentencia -> . if
+    (28) sentencia -> . while
+    (29) sentencia -> . for
+    (30) sentencia -> . do_while
+    (31) sentencia -> . switch
+    (32) sentencia -> . break
+    (33) sentencia -> . callMetodo
+    (34) sentencia -> . error PYCOMA
+    (35) sentencia -> . error LLAVEDER
+    (10) declaracion -> . tipo declaraciones PYCOMA
+    (36) asignacion -> . ID IGUAL operacion PYCOMA
+    (37) asignacion -> . ID tipo_asignacion PYCOMA
+    (48) if -> . IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER
+    (49) if -> . IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER ELSE LLAVEIZQ sentencias LLAVEDER
+    (50) if -> . IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER else_if
+    (54) if -> . IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER else_if ELSE LLAVEIZQ sentencias LLAVEDER
+    (55) while -> . WHILE PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER
+    (57) for -> . FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
+    (56) do_while -> . DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
+    (66) switch -> . SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER
+    (71) break -> . BREAK PYCOMA
+    (62) callMetodo -> . ID PARIZQ PARDER PYCOMA
+    (63) callMetodo -> . ID PARIZQ valores PARDER PYCOMA
+    (95) tipo -> . INTEGER
+    (96) tipo -> . FLOAT
+    (97) tipo -> . DOUBLE
+    (98) tipo -> . CHAR
+    (99) tipo -> . ID
+
+    error           shift and go to state 130
+    ID              shift and go to state 131
+    IF              shift and go to state 132
+    WHILE           shift and go to state 133
+    FOR             shift and go to state 134
+    DO              shift and go to state 135
+    SWITCH          shift and go to state 136
+    BREAK           shift and go to state 137
+    INTEGER         shift and go to state 93
+    FLOAT           shift and go to state 13
+    DOUBLE          shift and go to state 14
+    CHAR            shift and go to state 15
+
+    sentencias                     shift and go to state 186
+    sentencia                      shift and go to state 120
+    declaracion                    shift and go to state 121
+    asignacion                     shift and go to state 122
+    if                             shift and go to state 123
+    while                          shift and go to state 124
+    for                            shift and go to state 125
+    do_while                       shift and go to state 126
+    switch                         shift and go to state 127
+    break                          shift and go to state 128
+    callMetodo                     shift and go to state 129
+    tipo                           shift and go to state 9
+
+state 180
+
     (57) for -> FOR PARIZQ inicializacion PYCOMA operacion . PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
     (72) operacion -> operacion . AND operacion
     (73) operacion -> operacion . OR operacion
@@ -6362,7 +6369,7 @@ state 179
     (89) operacion -> operacion . MODULAR operacion
     (90) operacion -> operacion . INTERROGACION operacion DOSPUNTOS operacion
 
-    PYCOMA          shift and go to state 186
+    PYCOMA          shift and go to state 187
     AND             shift and go to state 65
     OR              shift and go to state 66
     IGUALIGUAL      shift and go to state 67
@@ -6384,7 +6391,7 @@ state 179
     INTERROGACION   shift and go to state 83
 
 
-state 180
+state 181
 
     (58) inicializacion -> tipo ID IGUAL . operacion
     (72) operacion -> . operacion AND operacion
@@ -6425,10 +6432,10 @@ state 180
     CARACTER        shift and go to state 47
     CADENA          shift and go to state 48
 
-    operacion                      shift and go to state 187
+    operacion                      shift and go to state 188
     valor                          shift and go to state 44
 
-state 181
+state 182
 
     (59) inicializacion -> ID IGUAL operacion .
     (72) operacion -> operacion . AND operacion
@@ -6473,14 +6480,14 @@ state 181
     INTERROGACION   shift and go to state 83
 
 
-state 182
+state 183
 
     (56) do_while -> DO LLAVEIZQ sentencias LLAVEDER WHILE . PARIZQ operacion PARDER PYCOMA
 
-    PARIZQ          shift and go to state 188
+    PARIZQ          shift and go to state 189
 
 
-state 183
+state 184
 
     (66) switch -> SWITCH PARIZQ operacion PARDER LLAVEIZQ . casos LLAVEDER
     (67) casos -> . casos caso
@@ -6488,13 +6495,13 @@ state 183
     (69) caso -> . CASE operacion DOSPUNTOS sentencias
     (70) caso -> . DEFAULT DOSPUNTOS sentencias
 
-    CASE            shift and go to state 191
-    DEFAULT         shift and go to state 192
+    CASE            shift and go to state 192
+    DEFAULT         shift and go to state 193
 
-    casos                          shift and go to state 189
-    caso                           shift and go to state 190
+    casos                          shift and go to state 190
+    caso                           shift and go to state 191
 
-state 184
+state 185
 
     (48) if -> IF PARIZQ operacion PARDER LLAVEIZQ sentencias . LLAVEDER
     (49) if -> IF PARIZQ operacion PARDER LLAVEIZQ sentencias . LLAVEDER ELSE LLAVEIZQ sentencias LLAVEDER
@@ -6523,68 +6530,7 @@ state 184
     (57) for -> . FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
     (56) do_while -> . DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
     (66) switch -> . SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER
-    (71) break -> . BREAK
-    (62) callMetodo -> . ID PARIZQ PARDER PYCOMA
-    (63) callMetodo -> . ID PARIZQ valores PARDER PYCOMA
-    (95) tipo -> . INTEGER
-    (96) tipo -> . FLOAT
-    (97) tipo -> . DOUBLE
-    (98) tipo -> . CHAR
-    (99) tipo -> . ID
-
-    LLAVEDER        shift and go to state 193
-    error           shift and go to state 130
-    ID              shift and go to state 131
-    IF              shift and go to state 132
-    WHILE           shift and go to state 133
-    FOR             shift and go to state 134
-    DO              shift and go to state 135
-    SWITCH          shift and go to state 136
-    BREAK           shift and go to state 137
-    INTEGER         shift and go to state 93
-    FLOAT           shift and go to state 13
-    DOUBLE          shift and go to state 14
-    CHAR            shift and go to state 15
-
-    sentencia                      shift and go to state 143
-    declaracion                    shift and go to state 121
-    asignacion                     shift and go to state 122
-    if                             shift and go to state 123
-    while                          shift and go to state 124
-    for                            shift and go to state 125
-    do_while                       shift and go to state 126
-    switch                         shift and go to state 127
-    break                          shift and go to state 128
-    callMetodo                     shift and go to state 129
-    tipo                           shift and go to state 9
-
-state 185
-
-    (55) while -> WHILE PARIZQ operacion PARDER LLAVEIZQ sentencias . LLAVEDER
-    (23) sentencias -> sentencias . sentencia
-    (25) sentencia -> . declaracion
-    (26) sentencia -> . asignacion
-    (27) sentencia -> . if
-    (28) sentencia -> . while
-    (29) sentencia -> . for
-    (30) sentencia -> . do_while
-    (31) sentencia -> . switch
-    (32) sentencia -> . break
-    (33) sentencia -> . callMetodo
-    (34) sentencia -> . error PYCOMA
-    (35) sentencia -> . error LLAVEDER
-    (10) declaracion -> . tipo declaraciones PYCOMA
-    (36) asignacion -> . ID IGUAL operacion PYCOMA
-    (37) asignacion -> . ID tipo_asignacion PYCOMA
-    (48) if -> . IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER
-    (49) if -> . IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER ELSE LLAVEIZQ sentencias LLAVEDER
-    (50) if -> . IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER else_if
-    (54) if -> . IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER else_if ELSE LLAVEIZQ sentencias LLAVEDER
-    (55) while -> . WHILE PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER
-    (57) for -> . FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
-    (56) do_while -> . DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
-    (66) switch -> . SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER
-    (71) break -> . BREAK
+    (71) break -> . BREAK PYCOMA
     (62) callMetodo -> . ID PARIZQ PARDER PYCOMA
     (63) callMetodo -> . ID PARIZQ valores PARDER PYCOMA
     (95) tipo -> . INTEGER
@@ -6621,15 +6567,76 @@ state 185
 
 state 186
 
+    (55) while -> WHILE PARIZQ operacion PARDER LLAVEIZQ sentencias . LLAVEDER
+    (23) sentencias -> sentencias . sentencia
+    (25) sentencia -> . declaracion
+    (26) sentencia -> . asignacion
+    (27) sentencia -> . if
+    (28) sentencia -> . while
+    (29) sentencia -> . for
+    (30) sentencia -> . do_while
+    (31) sentencia -> . switch
+    (32) sentencia -> . break
+    (33) sentencia -> . callMetodo
+    (34) sentencia -> . error PYCOMA
+    (35) sentencia -> . error LLAVEDER
+    (10) declaracion -> . tipo declaraciones PYCOMA
+    (36) asignacion -> . ID IGUAL operacion PYCOMA
+    (37) asignacion -> . ID tipo_asignacion PYCOMA
+    (48) if -> . IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER
+    (49) if -> . IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER ELSE LLAVEIZQ sentencias LLAVEDER
+    (50) if -> . IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER else_if
+    (54) if -> . IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER else_if ELSE LLAVEIZQ sentencias LLAVEDER
+    (55) while -> . WHILE PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER
+    (57) for -> . FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
+    (56) do_while -> . DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
+    (66) switch -> . SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER
+    (71) break -> . BREAK PYCOMA
+    (62) callMetodo -> . ID PARIZQ PARDER PYCOMA
+    (63) callMetodo -> . ID PARIZQ valores PARDER PYCOMA
+    (95) tipo -> . INTEGER
+    (96) tipo -> . FLOAT
+    (97) tipo -> . DOUBLE
+    (98) tipo -> . CHAR
+    (99) tipo -> . ID
+
+    LLAVEDER        shift and go to state 195
+    error           shift and go to state 130
+    ID              shift and go to state 131
+    IF              shift and go to state 132
+    WHILE           shift and go to state 133
+    FOR             shift and go to state 134
+    DO              shift and go to state 135
+    SWITCH          shift and go to state 136
+    BREAK           shift and go to state 137
+    INTEGER         shift and go to state 93
+    FLOAT           shift and go to state 13
+    DOUBLE          shift and go to state 14
+    CHAR            shift and go to state 15
+
+    sentencia                      shift and go to state 143
+    declaracion                    shift and go to state 121
+    asignacion                     shift and go to state 122
+    if                             shift and go to state 123
+    while                          shift and go to state 124
+    for                            shift and go to state 125
+    do_while                       shift and go to state 126
+    switch                         shift and go to state 127
+    break                          shift and go to state 128
+    callMetodo                     shift and go to state 129
+    tipo                           shift and go to state 9
+
+state 187
+
     (57) for -> FOR PARIZQ inicializacion PYCOMA operacion PYCOMA . incremento PARDER LLAVEIZQ sentencias LLAVEDER
     (60) incremento -> . ID MENOS MENOS
     (61) incremento -> . ID tipo_asignacion
 
-    ID              shift and go to state 196
+    ID              shift and go to state 197
 
-    incremento                     shift and go to state 195
+    incremento                     shift and go to state 196
 
-state 187
+state 188
 
     (58) inicializacion -> tipo ID IGUAL operacion .
     (72) operacion -> operacion . AND operacion
@@ -6674,7 +6681,7 @@ state 187
     INTERROGACION   shift and go to state 83
 
 
-state 188
+state 189
 
     (56) do_while -> DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ . operacion PARDER PYCOMA
     (72) operacion -> . operacion AND operacion
@@ -6715,23 +6722,23 @@ state 188
     CARACTER        shift and go to state 47
     CADENA          shift and go to state 48
 
-    operacion                      shift and go to state 197
+    operacion                      shift and go to state 198
     valor                          shift and go to state 44
 
-state 189
+state 190
 
     (66) switch -> SWITCH PARIZQ operacion PARDER LLAVEIZQ casos . LLAVEDER
     (67) casos -> casos . caso
     (69) caso -> . CASE operacion DOSPUNTOS sentencias
     (70) caso -> . DEFAULT DOSPUNTOS sentencias
 
-    LLAVEDER        shift and go to state 198
-    CASE            shift and go to state 191
-    DEFAULT         shift and go to state 192
+    LLAVEDER        shift and go to state 199
+    CASE            shift and go to state 192
+    DEFAULT         shift and go to state 193
 
-    caso                           shift and go to state 199
+    caso                           shift and go to state 200
 
-state 190
+state 191
 
     (68) casos -> caso .
 
@@ -6740,7 +6747,7 @@ state 190
     DEFAULT         reduce using rule 68 (casos -> caso .)
 
 
-state 191
+state 192
 
     (69) caso -> CASE . operacion DOSPUNTOS sentencias
     (72) operacion -> . operacion AND operacion
@@ -6781,17 +6788,17 @@ state 191
     CARACTER        shift and go to state 47
     CADENA          shift and go to state 48
 
-    operacion                      shift and go to state 200
+    operacion                      shift and go to state 201
     valor                          shift and go to state 44
 
-state 192
+state 193
 
     (70) caso -> DEFAULT . DOSPUNTOS sentencias
 
-    DOSPUNTOS       shift and go to state 201
+    DOSPUNTOS       shift and go to state 202
 
 
-state 193
+state 194
 
     (48) if -> IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER .
     (49) if -> IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER . ELSE LLAVEIZQ sentencias LLAVEDER
@@ -6816,12 +6823,12 @@ state 193
     CHAR            reduce using rule 48 (if -> IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER .)
     CASE            reduce using rule 48 (if -> IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER .)
     DEFAULT         reduce using rule 48 (if -> IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER .)
-    ELSE            shift and go to state 202
+    ELSE            shift and go to state 203
 
-    else_if                        shift and go to state 203
-    elif                           shift and go to state 204
+    else_if                        shift and go to state 204
+    elif                           shift and go to state 205
 
-state 194
+state 195
 
     (55) while -> WHILE PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER .
 
@@ -6842,14 +6849,14 @@ state 194
     DEFAULT         reduce using rule 55 (while -> WHILE PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER .)
 
 
-state 195
+state 196
 
     (57) for -> FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento . PARDER LLAVEIZQ sentencias LLAVEDER
 
-    PARDER          shift and go to state 205
+    PARDER          shift and go to state 206
 
 
-state 196
+state 197
 
     (60) incremento -> ID . MENOS MENOS
     (61) incremento -> ID . tipo_asignacion
@@ -6864,7 +6871,7 @@ state 196
     (46) tipo_asignacion -> . ORIGUAL operacion
     (47) tipo_asignacion -> . XORIGUAL operacion
 
-    MENOS           shift and go to state 206
+    MENOS           shift and go to state 207
     MASIGUAL        shift and go to state 24
     MENOSIGUAL      shift and go to state 25
     ASTERISCOIGUAL  shift and go to state 26
@@ -6876,9 +6883,9 @@ state 196
     ORIGUAL         shift and go to state 32
     XORIGUAL        shift and go to state 33
 
-    tipo_asignacion                shift and go to state 207
+    tipo_asignacion                shift and go to state 208
 
-state 197
+state 198
 
     (56) do_while -> DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion . PARDER PYCOMA
     (72) operacion -> operacion . AND operacion
@@ -6901,7 +6908,7 @@ state 197
     (89) operacion -> operacion . MODULAR operacion
     (90) operacion -> operacion . INTERROGACION operacion DOSPUNTOS operacion
 
-    PARDER          shift and go to state 208
+    PARDER          shift and go to state 209
     AND             shift and go to state 65
     OR              shift and go to state 66
     IGUALIGUAL      shift and go to state 67
@@ -6923,7 +6930,7 @@ state 197
     INTERROGACION   shift and go to state 83
 
 
-state 198
+state 199
 
     (66) switch -> SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER .
 
@@ -6944,7 +6951,7 @@ state 198
     DEFAULT         reduce using rule 66 (switch -> SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER .)
 
 
-state 199
+state 200
 
     (67) casos -> casos caso .
 
@@ -6953,7 +6960,7 @@ state 199
     DEFAULT         reduce using rule 67 (casos -> casos caso .)
 
 
-state 200
+state 201
 
     (69) caso -> CASE operacion . DOSPUNTOS sentencias
     (72) operacion -> operacion . AND operacion
@@ -6976,7 +6983,7 @@ state 200
     (89) operacion -> operacion . MODULAR operacion
     (90) operacion -> operacion . INTERROGACION operacion DOSPUNTOS operacion
 
-    DOSPUNTOS       shift and go to state 209
+    DOSPUNTOS       shift and go to state 210
     AND             shift and go to state 65
     OR              shift and go to state 66
     IGUALIGUAL      shift and go to state 67
@@ -6998,7 +7005,7 @@ state 200
     INTERROGACION   shift and go to state 83
 
 
-state 201
+state 202
 
     (70) caso -> DEFAULT DOSPUNTOS . sentencias
     (23) sentencias -> . sentencias sentencia
@@ -7025,7 +7032,7 @@ state 201
     (57) for -> . FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
     (56) do_while -> . DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
     (66) switch -> . SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER
-    (71) break -> . BREAK
+    (71) break -> . BREAK PYCOMA
     (62) callMetodo -> . ID PARIZQ PARDER PYCOMA
     (63) callMetodo -> . ID PARIZQ valores PARDER PYCOMA
     (95) tipo -> . INTEGER
@@ -7047,7 +7054,7 @@ state 201
     DOUBLE          shift and go to state 14
     CHAR            shift and go to state 15
 
-    sentencias                     shift and go to state 210
+    sentencias                     shift and go to state 211
     sentencia                      shift and go to state 120
     declaracion                    shift and go to state 121
     asignacion                     shift and go to state 122
@@ -7060,16 +7067,16 @@ state 201
     callMetodo                     shift and go to state 129
     tipo                           shift and go to state 9
 
-state 202
+state 203
 
     (49) if -> IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER ELSE . LLAVEIZQ sentencias LLAVEDER
     (53) elif -> ELSE . IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER
 
-    LLAVEIZQ        shift and go to state 212
-    IF              shift and go to state 211
+    LLAVEIZQ        shift and go to state 213
+    IF              shift and go to state 212
 
 
-state 203
+state 204
 
     (50) if -> IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER else_if .
     (54) if -> IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER else_if . ELSE LLAVEIZQ sentencias LLAVEDER
@@ -7091,11 +7098,11 @@ state 203
     CHAR            reduce using rule 50 (if -> IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER else_if .)
     CASE            reduce using rule 50 (if -> IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER else_if .)
     DEFAULT         reduce using rule 50 (if -> IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER else_if .)
-    ELSE            shift and go to state 213
+    ELSE            shift and go to state 214
 
-    elif                           shift and go to state 214
+    elif                           shift and go to state 215
 
-state 204
+state 205
 
     (52) else_if -> elif .
 
@@ -7117,35 +7124,35 @@ state 204
     DEFAULT         reduce using rule 52 (else_if -> elif .)
 
 
-state 205
+state 206
 
     (57) for -> FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER . LLAVEIZQ sentencias LLAVEDER
 
-    LLAVEIZQ        shift and go to state 215
-
-
-state 206
-
-    (60) incremento -> ID MENOS . MENOS
-
-    MENOS           shift and go to state 216
+    LLAVEIZQ        shift and go to state 216
 
 
 state 207
+
+    (60) incremento -> ID MENOS . MENOS
+
+    MENOS           shift and go to state 217
+
+
+state 208
 
     (61) incremento -> ID tipo_asignacion .
 
     PARDER          reduce using rule 61 (incremento -> ID tipo_asignacion .)
 
 
-state 208
+state 209
 
     (56) do_while -> DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER . PYCOMA
 
-    PYCOMA          shift and go to state 217
+    PYCOMA          shift and go to state 218
 
 
-state 209
+state 210
 
     (69) caso -> CASE operacion DOSPUNTOS . sentencias
     (23) sentencias -> . sentencias sentencia
@@ -7172,7 +7179,7 @@ state 209
     (57) for -> . FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
     (56) do_while -> . DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
     (66) switch -> . SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER
-    (71) break -> . BREAK
+    (71) break -> . BREAK PYCOMA
     (62) callMetodo -> . ID PARIZQ PARDER PYCOMA
     (63) callMetodo -> . ID PARIZQ valores PARDER PYCOMA
     (95) tipo -> . INTEGER
@@ -7194,7 +7201,7 @@ state 209
     DOUBLE          shift and go to state 14
     CHAR            shift and go to state 15
 
-    sentencias                     shift and go to state 218
+    sentencias                     shift and go to state 219
     sentencia                      shift and go to state 120
     declaracion                    shift and go to state 121
     asignacion                     shift and go to state 122
@@ -7207,7 +7214,7 @@ state 209
     callMetodo                     shift and go to state 129
     tipo                           shift and go to state 9
 
-state 210
+state 211
 
     (70) caso -> DEFAULT DOSPUNTOS sentencias .
     (23) sentencias -> sentencias . sentencia
@@ -7233,7 +7240,7 @@ state 210
     (57) for -> . FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
     (56) do_while -> . DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
     (66) switch -> . SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER
-    (71) break -> . BREAK
+    (71) break -> . BREAK PYCOMA
     (62) callMetodo -> . ID PARIZQ PARDER PYCOMA
     (63) callMetodo -> . ID PARIZQ valores PARDER PYCOMA
     (95) tipo -> . INTEGER
@@ -7270,14 +7277,14 @@ state 210
     callMetodo                     shift and go to state 129
     tipo                           shift and go to state 9
 
-state 211
+state 212
 
     (53) elif -> ELSE IF . PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER
 
-    PARIZQ          shift and go to state 219
+    PARIZQ          shift and go to state 220
 
 
-state 212
+state 213
 
     (49) if -> IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER ELSE LLAVEIZQ . sentencias LLAVEDER
     (23) sentencias -> . sentencias sentencia
@@ -7304,7 +7311,7 @@ state 212
     (57) for -> . FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
     (56) do_while -> . DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
     (66) switch -> . SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER
-    (71) break -> . BREAK
+    (71) break -> . BREAK PYCOMA
     (62) callMetodo -> . ID PARIZQ PARDER PYCOMA
     (63) callMetodo -> . ID PARIZQ valores PARDER PYCOMA
     (95) tipo -> . INTEGER
@@ -7326,7 +7333,7 @@ state 212
     DOUBLE          shift and go to state 14
     CHAR            shift and go to state 15
 
-    sentencias                     shift and go to state 220
+    sentencias                     shift and go to state 221
     sentencia                      shift and go to state 120
     declaracion                    shift and go to state 121
     asignacion                     shift and go to state 122
@@ -7339,16 +7346,16 @@ state 212
     callMetodo                     shift and go to state 129
     tipo                           shift and go to state 9
 
-state 213
+state 214
 
     (54) if -> IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER else_if ELSE . LLAVEIZQ sentencias LLAVEDER
     (53) elif -> ELSE . IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER
 
-    LLAVEIZQ        shift and go to state 221
-    IF              shift and go to state 211
+    LLAVEIZQ        shift and go to state 222
+    IF              shift and go to state 212
 
 
-state 214
+state 215
 
     (51) else_if -> else_if elif .
 
@@ -7370,7 +7377,7 @@ state 214
     DEFAULT         reduce using rule 51 (else_if -> else_if elif .)
 
 
-state 215
+state 216
 
     (57) for -> FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ . sentencias LLAVEDER
     (23) sentencias -> . sentencias sentencia
@@ -7397,7 +7404,7 @@ state 215
     (57) for -> . FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
     (56) do_while -> . DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
     (66) switch -> . SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER
-    (71) break -> . BREAK
+    (71) break -> . BREAK PYCOMA
     (62) callMetodo -> . ID PARIZQ PARDER PYCOMA
     (63) callMetodo -> . ID PARIZQ valores PARDER PYCOMA
     (95) tipo -> . INTEGER
@@ -7419,7 +7426,7 @@ state 215
     DOUBLE          shift and go to state 14
     CHAR            shift and go to state 15
 
-    sentencias                     shift and go to state 222
+    sentencias                     shift and go to state 223
     sentencia                      shift and go to state 120
     declaracion                    shift and go to state 121
     asignacion                     shift and go to state 122
@@ -7432,14 +7439,14 @@ state 215
     callMetodo                     shift and go to state 129
     tipo                           shift and go to state 9
 
-state 216
+state 217
 
     (60) incremento -> ID MENOS MENOS .
 
     PARDER          reduce using rule 60 (incremento -> ID MENOS MENOS .)
 
 
-state 217
+state 218
 
     (56) do_while -> DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA .
 
@@ -7460,7 +7467,7 @@ state 217
     DEFAULT         reduce using rule 56 (do_while -> DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA .)
 
 
-state 218
+state 219
 
     (69) caso -> CASE operacion DOSPUNTOS sentencias .
     (23) sentencias -> sentencias . sentencia
@@ -7486,7 +7493,7 @@ state 218
     (57) for -> . FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
     (56) do_while -> . DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
     (66) switch -> . SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER
-    (71) break -> . BREAK
+    (71) break -> . BREAK PYCOMA
     (62) callMetodo -> . ID PARIZQ PARDER PYCOMA
     (63) callMetodo -> . ID PARIZQ valores PARDER PYCOMA
     (95) tipo -> . INTEGER
@@ -7523,7 +7530,7 @@ state 218
     callMetodo                     shift and go to state 129
     tipo                           shift and go to state 9
 
-state 219
+state 220
 
     (53) elif -> ELSE IF PARIZQ . operacion PARDER LLAVEIZQ sentencias LLAVEDER
     (72) operacion -> . operacion AND operacion
@@ -7564,10 +7571,10 @@ state 219
     CARACTER        shift and go to state 47
     CADENA          shift and go to state 48
 
-    operacion                      shift and go to state 223
+    operacion                      shift and go to state 224
     valor                          shift and go to state 44
 
-state 220
+state 221
 
     (49) if -> IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER ELSE LLAVEIZQ sentencias . LLAVEDER
     (23) sentencias -> sentencias . sentencia
@@ -7593,7 +7600,7 @@ state 220
     (57) for -> . FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
     (56) do_while -> . DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
     (66) switch -> . SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER
-    (71) break -> . BREAK
+    (71) break -> . BREAK PYCOMA
     (62) callMetodo -> . ID PARIZQ PARDER PYCOMA
     (63) callMetodo -> . ID PARIZQ valores PARDER PYCOMA
     (95) tipo -> . INTEGER
@@ -7602,7 +7609,7 @@ state 220
     (98) tipo -> . CHAR
     (99) tipo -> . ID
 
-    LLAVEDER        shift and go to state 224
+    LLAVEDER        shift and go to state 225
     error           shift and go to state 130
     ID              shift and go to state 131
     IF              shift and go to state 132
@@ -7628,7 +7635,7 @@ state 220
     callMetodo                     shift and go to state 129
     tipo                           shift and go to state 9
 
-state 221
+state 222
 
     (54) if -> IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER else_if ELSE LLAVEIZQ . sentencias LLAVEDER
     (23) sentencias -> . sentencias sentencia
@@ -7655,7 +7662,7 @@ state 221
     (57) for -> . FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
     (56) do_while -> . DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
     (66) switch -> . SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER
-    (71) break -> . BREAK
+    (71) break -> . BREAK PYCOMA
     (62) callMetodo -> . ID PARIZQ PARDER PYCOMA
     (63) callMetodo -> . ID PARIZQ valores PARDER PYCOMA
     (95) tipo -> . INTEGER
@@ -7677,7 +7684,7 @@ state 221
     DOUBLE          shift and go to state 14
     CHAR            shift and go to state 15
 
-    sentencias                     shift and go to state 225
+    sentencias                     shift and go to state 226
     sentencia                      shift and go to state 120
     declaracion                    shift and go to state 121
     asignacion                     shift and go to state 122
@@ -7690,7 +7697,7 @@ state 221
     callMetodo                     shift and go to state 129
     tipo                           shift and go to state 9
 
-state 222
+state 223
 
     (57) for -> FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias . LLAVEDER
     (23) sentencias -> sentencias . sentencia
@@ -7716,7 +7723,7 @@ state 222
     (57) for -> . FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
     (56) do_while -> . DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
     (66) switch -> . SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER
-    (71) break -> . BREAK
+    (71) break -> . BREAK PYCOMA
     (62) callMetodo -> . ID PARIZQ PARDER PYCOMA
     (63) callMetodo -> . ID PARIZQ valores PARDER PYCOMA
     (95) tipo -> . INTEGER
@@ -7725,7 +7732,7 @@ state 222
     (98) tipo -> . CHAR
     (99) tipo -> . ID
 
-    LLAVEDER        shift and go to state 226
+    LLAVEDER        shift and go to state 227
     error           shift and go to state 130
     ID              shift and go to state 131
     IF              shift and go to state 132
@@ -7751,7 +7758,7 @@ state 222
     callMetodo                     shift and go to state 129
     tipo                           shift and go to state 9
 
-state 223
+state 224
 
     (53) elif -> ELSE IF PARIZQ operacion . PARDER LLAVEIZQ sentencias LLAVEDER
     (72) operacion -> operacion . AND operacion
@@ -7774,7 +7781,7 @@ state 223
     (89) operacion -> operacion . MODULAR operacion
     (90) operacion -> operacion . INTERROGACION operacion DOSPUNTOS operacion
 
-    PARDER          shift and go to state 227
+    PARDER          shift and go to state 228
     AND             shift and go to state 65
     OR              shift and go to state 66
     IGUALIGUAL      shift and go to state 67
@@ -7796,7 +7803,7 @@ state 223
     INTERROGACION   shift and go to state 83
 
 
-state 224
+state 225
 
     (49) if -> IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER ELSE LLAVEIZQ sentencias LLAVEDER .
 
@@ -7817,7 +7824,7 @@ state 224
     DEFAULT         reduce using rule 49 (if -> IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER ELSE LLAVEIZQ sentencias LLAVEDER .)
 
 
-state 225
+state 226
 
     (54) if -> IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER else_if ELSE LLAVEIZQ sentencias . LLAVEDER
     (23) sentencias -> sentencias . sentencia
@@ -7843,7 +7850,7 @@ state 225
     (57) for -> . FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
     (56) do_while -> . DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
     (66) switch -> . SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER
-    (71) break -> . BREAK
+    (71) break -> . BREAK PYCOMA
     (62) callMetodo -> . ID PARIZQ PARDER PYCOMA
     (63) callMetodo -> . ID PARIZQ valores PARDER PYCOMA
     (95) tipo -> . INTEGER
@@ -7852,7 +7859,7 @@ state 225
     (98) tipo -> . CHAR
     (99) tipo -> . ID
 
-    LLAVEDER        shift and go to state 228
+    LLAVEDER        shift and go to state 229
     error           shift and go to state 130
     ID              shift and go to state 131
     IF              shift and go to state 132
@@ -7878,7 +7885,7 @@ state 225
     callMetodo                     shift and go to state 129
     tipo                           shift and go to state 9
 
-state 226
+state 227
 
     (57) for -> FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER .
 
@@ -7899,14 +7906,14 @@ state 226
     DEFAULT         reduce using rule 57 (for -> FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER .)
 
 
-state 227
+state 228
 
     (53) elif -> ELSE IF PARIZQ operacion PARDER . LLAVEIZQ sentencias LLAVEDER
 
-    LLAVEIZQ        shift and go to state 229
+    LLAVEIZQ        shift and go to state 230
 
 
-state 228
+state 229
 
     (54) if -> IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER else_if ELSE LLAVEIZQ sentencias LLAVEDER .
 
@@ -7927,7 +7934,7 @@ state 228
     DEFAULT         reduce using rule 54 (if -> IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER else_if ELSE LLAVEIZQ sentencias LLAVEDER .)
 
 
-state 229
+state 230
 
     (53) elif -> ELSE IF PARIZQ operacion PARDER LLAVEIZQ . sentencias LLAVEDER
     (23) sentencias -> . sentencias sentencia
@@ -7954,7 +7961,7 @@ state 229
     (57) for -> . FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
     (56) do_while -> . DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
     (66) switch -> . SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER
-    (71) break -> . BREAK
+    (71) break -> . BREAK PYCOMA
     (62) callMetodo -> . ID PARIZQ PARDER PYCOMA
     (63) callMetodo -> . ID PARIZQ valores PARDER PYCOMA
     (95) tipo -> . INTEGER
@@ -7976,7 +7983,7 @@ state 229
     DOUBLE          shift and go to state 14
     CHAR            shift and go to state 15
 
-    sentencias                     shift and go to state 230
+    sentencias                     shift and go to state 231
     sentencia                      shift and go to state 120
     declaracion                    shift and go to state 121
     asignacion                     shift and go to state 122
@@ -7989,7 +7996,7 @@ state 229
     callMetodo                     shift and go to state 129
     tipo                           shift and go to state 9
 
-state 230
+state 231
 
     (53) elif -> ELSE IF PARIZQ operacion PARDER LLAVEIZQ sentencias . LLAVEDER
     (23) sentencias -> sentencias . sentencia
@@ -8015,7 +8022,7 @@ state 230
     (57) for -> . FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER
     (56) do_while -> . DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA
     (66) switch -> . SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER
-    (71) break -> . BREAK
+    (71) break -> . BREAK PYCOMA
     (62) callMetodo -> . ID PARIZQ PARDER PYCOMA
     (63) callMetodo -> . ID PARIZQ valores PARDER PYCOMA
     (95) tipo -> . INTEGER
@@ -8024,7 +8031,7 @@ state 230
     (98) tipo -> . CHAR
     (99) tipo -> . ID
 
-    LLAVEDER        shift and go to state 231
+    LLAVEDER        shift and go to state 232
     error           shift and go to state 130
     ID              shift and go to state 131
     IF              shift and go to state 132
@@ -8050,7 +8057,7 @@ state 230
     callMetodo                     shift and go to state 129
     tipo                           shift and go to state 9
 
-state 231
+state 232
 
     (53) elif -> ELSE IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER .
 
