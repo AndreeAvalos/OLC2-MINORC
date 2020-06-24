@@ -224,6 +224,7 @@ def p_instruccion(p):
                     |   asignacion
                     |   main
                     |   metodo
+                    |   funcion
                     |   error PYCOMA
                     |   error LLAVEDER
     '''
@@ -305,6 +306,7 @@ def p_sentencia(p):
                     |   do_while
                     |   switch
                     |   break
+                    |   return
                     |   callMetodo
                     |   error PYCOMA
                     |   error LLAVEDER
@@ -427,7 +429,6 @@ def p_casos2(p):
     'casos  :   caso'
     p[0] = [p[1]]
 
-
 def p_caso(p):
     'caso   :   CASE operacion DOSPUNTOS sentencias'
     p[0] = Case(p[2],p[4])
@@ -439,6 +440,10 @@ def p_caso2(p):
 def p_break(p):
     'break  :   BREAK PYCOMA'
     p[0] = Break()
+
+def p_return(p):
+    'return :   RETURN operacion PYCOMA'
+    p[0] = Return(p[2])
 
 def p_operaciones_logicas(p):
     '''operacion    :   operacion   AND             operacion
@@ -484,6 +489,16 @@ def p_operaciones_unarias(p):
                     |   NOTBIT  operacion   %prec UMENOS
     '''
     p[0] = OperacionUnaria(p[2], p[1],p.lineno(1),find_column(p.slice[1]))
+
+def p_operaciones_funcion(p):
+    'operacion :   ID PARIZQ PARDER'
+    p[0] = OperacionLlamada(p[1],None)
+
+def p_operaciones_funcion2(p):
+    'operacion :   ID PARIZQ valores PARDER'
+    p[0] = OperacionLlamada(p[1],p[3])
+
+
 
 def p_operaciones_valor(p):
     'operacion      :   valor'

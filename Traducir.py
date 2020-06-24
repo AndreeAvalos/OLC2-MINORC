@@ -33,6 +33,9 @@ class Traducir(threading.Thread):
         self.index_default = 0
         self.sentencia_break =""
         self.is_break = False
+        self.sentencia_return = ""
+        self.is_return = False
+        self.entro_recursivo = False
 
 
     def run(self):
@@ -390,7 +393,11 @@ class Traducir(threading.Thread):
     def procesar_llamada(self, sentencia, ts):
         #comparamos si estamos en la misma funcion
         if sentencia.id != self.ambito_ejecucion:
-            #comprobamos si tiene parametros 
+            #comprobamos si tiene parametros
+            new_END = self.generarEND()
+
+            self.sentencia_return = new_END
+
             self.ambito_ejecucion = sentencia.id
             if sentencia.params:
                 primero = True
@@ -456,12 +463,12 @@ class Traducir(threading.Thread):
                             contar_aux+=1
                 self.procesar_sentencias(sentencias,local)
                 #etiqueta para salir
-                new_etiqueta = self.generarEND()
-                self.etiquetas[new_etiqueta] = []
-                new_cuadruplo = Cuadruplo("goto",new_etiqueta,"","")
+                
+                self.etiquetas[new_END] = []
+                new_cuadruplo = Cuadruplo("goto",new_END,"","")
                 self.cuadruplos.add(new_cuadruplo)
                 self.etiquetas[self.etiqueta].append(new_cuadruplo)  
-                self.etiqueta = new_etiqueta
+                self.etiqueta = new_END
 
             else:
                 'aqui deberiamos eliminar la etiqueta'
@@ -469,9 +476,9 @@ class Traducir(threading.Thread):
                 self.etiqueta = old_etiqueta
         else:
             'some action'
-            print(">>AQUI DEBERIA ESTA EN EL MISMO AMBITO DE EJECUCION")
-            print("{0},{1}".format(self.ambito_ejecucion,self.last_etiqueta))
-            
+            #print(">>AQUI DEBERIA ESTA EN EL MISMO AMBITO DE EJECUCION")
+            #print("{0},{1}".format(self.ambito_ejecucion,self.last_etiqueta))
+            self.entro_recursivo = True
             if sentencia.params:
                 primero = True
                 for parametro in sentencia.params:
@@ -578,9 +585,33 @@ class Traducir(threading.Thread):
         new_cuadruplo = Cuadruplo("goto",self.sentencia_break, "","")
         self.cuadruplos.add(new_cuadruplo)
         self.etiquetas[self.etiqueta].append(new_cuadruplo)
+        
+    def procesar_return(self,operacion,ts):
+        pop= None
+        pop2 = None
+        pop3 = None
+        temp = "$v0"
+        last_temp = self.procesar_operacion(operacion.operacion, ts)
+        
 
+        if self.entro_recursivo:
+            pop = self.etiquetas[self.etiqueta].pop()
+            pop2 = self.etiquetas[self.etiqueta].pop()
+            self.etiquetas[self.etiqueta].append(pop)
+            temp = "$v1"
 
+        new_cuadruplo = Cuadruplo("=",last_temp,"",temp)
+        self.cuadruplos.add(new_cuadruplo)
+        self.etiquetas[self.etiqueta].append(new_cuadruplo)
+        #new_cuadruplo = Cuadruplo("goto",self.sentencia_return, "","")
+        #self.cuadruplos.add(new_cuadruplo)
+        #self.etiquetas[self.etiqueta].append(new_cuadruplo)
 
+        if self.entro_recursivo:
+            self.etiquetas[self.etiqueta].append(pop2)
+            self.entro_recursivo = False
+        #self.etiquetas[self.sentencia_return].append(pop1)
+        
     def procesar_sentencias(self,sentencias, ts):
         local = TablaSimbolos()
         local.setPadre(ts)
@@ -593,8 +624,9 @@ class Traducir(threading.Thread):
             elif isinstance(sentencia,DoWhile): self.procesar_doWhile(sentencia,local)
             elif isinstance(sentencia, Llamada): self.procesar_llamada(sentencia,local)
             elif isinstance(sentencia, Switch): self.procesar_switch(sentencia,local)
-            elif isinstance(sentencia, Break): return self.procesar_break()
-        
+            elif isinstance(sentencia, Break):  self.procesar_break()
+            elif isinstance(sentencia, Return): self.procesar_return(sentencia,ts)
+
 
 
         
@@ -606,6 +638,7 @@ class Traducir(threading.Thread):
         elif isinstance(operacion, OperacionVariable): return self.procesar_valor(operacion, ts)
         elif isinstance(operacion, OperacionBinaria): return self.procesar_operacinBinaria(operacion,ts)
         elif isinstance(operacion, OperacionUnaria): return self.procesar_operacionUnaria(operacion,ts)
+        elif isinstance(operacion, OperacionLlamada): return self.procesar_operacionLlamada(operacion,ts)
 
     def procesar_operacinBinaria(self,operacion,ts):
         
@@ -626,6 +659,19 @@ class Traducir(threading.Thread):
         self.cuadruplos.add(new_cuadruplo)
         self.etiquetas[self.etiqueta].append(new_cuadruplo)
         return temp
+
+    def procesar_operacionLlamada(self,operacion,ts):
+        if operacion.id in self.funciones:
+            funcion = self.funciones[operacion.id]
+            if funcion["tipo"]!= "void":
+                self.procesar_sentencias([Llamada(operacion.id, operacion.params)], ts)
+                return "$v0"
+            else:
+                print("Error no es una funcion")
+        
+        return 0
+
+
 
     def procesar_valor(self, expresion, ts):
         if isinstance(expresion,OperacionVariable): 

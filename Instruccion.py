@@ -28,7 +28,7 @@ class Funcion(Instruccion):
     def __init__(self,tipo, id, params, sentencias):
         self.tipo = tipo
         self.id = id
-        self.parametros = params
+        self.params = params
         self.sentencias = sentencias
 
 class Llamada(Instruccion):
@@ -89,6 +89,9 @@ class Case(Instruccion):
 class Break(Instruccion):
     def __init__(self):
         super().__init__()
+class Return(Instruccion):
+    def __init__(self, operacion):
+        self.operacion = operacion
 
 class OperacionAsignacion(Instruccion):
     def __init__(self, operacion, op1):
@@ -110,6 +113,12 @@ class OperacionUnaria(Instruccion):
         self.operacion = operacion
         self.line =line
         self.column = column
+
+class OperacionLlamada(Instruccion):
+    def __init__(self,id,params):
+        self.id = id
+        self.params = params
+
 
 class OperacionNumero(Instruccion):
     def __init__(self,num, line, column):
