@@ -59,6 +59,9 @@ class Traducir(threading.Thread):
                 elif cuadruplo.op == "print":
                     self.C3D.addItem("  print({0});".format(cuadruplo.arg1))
                     print(" print({0});".format(cuadruplo.arg1))
+                elif cuadruplo.op == "exit":
+                    self.C3D.addItem("  exit;")
+                    print(" exit;")
                 elif cuadruplo.op != "=":
                     self.C3D.addItem(" {0}={1} {2} {3};".format(cuadruplo.result,cuadruplo.arg1, cuadruplo.op, cuadruplo.arg2))
                     print(" {0}={1} {2} {3};".format(cuadruplo.result,cuadruplo.arg1, cuadruplo.op, cuadruplo.arg2))
@@ -177,6 +180,10 @@ class Traducir(threading.Thread):
         self.etiquetas[self.etiqueta].insert(0,new_cuadruplo)
 
         self.procesar_sentencias(sentencias, ts)
+
+        new_cuadruplo = Cuadruplo("exit","","","")
+        self.cuadruplos.add(new_cuadruplo)
+        self.etiquetas[self.etiqueta].append(new_cuadruplo)
         '''local = TablaSimbolos()
         local.setPadre(ts)
         for sentencia in sentencias:
@@ -528,6 +535,14 @@ class Traducir(threading.Thread):
                     self.cuadruplos.add(new_cuadruplo)
                     self.etiquetas[self.etiqueta].append(new_cuadruplo)  
                     self.etiqueta = new_END
+                elif params==None and sentencia.params==None:
+                    self.procesar_sentencias(sentencias,local,True)
+                    #etiqueta para salir
+                    self.etiquetas[new_END] = []
+                    new_cuadruplo = Cuadruplo("goto",new_END,"","")
+                    self.cuadruplos.add(new_cuadruplo)
+                    self.etiquetas[self.etiqueta].append(new_cuadruplo)  
+                    self.etiqueta = new_END
 
             else:
                 'aqui deberiamos eliminar la etiqueta'
@@ -746,6 +761,7 @@ class Traducir(threading.Thread):
         elif isinstance(operacion, OperacionUnaria): return self.procesar_operacionUnaria(operacion,ts)
         elif isinstance(operacion, OperacionLlamada): return self.procesar_operacionLlamada(operacion,ts)
         elif isinstance(operacion, OperacionStruct): return self.procesar_operacionStruct(operacion,ts)
+        elif isinstance(operacion, Scan): return self.procesar_scan()
 
     def procesar_operacinBinaria(self,operacion,ts):
         
@@ -791,7 +807,8 @@ class Traducir(threading.Thread):
             self.etiquetas[self.etiqueta].append(new_cuadruplo)
             return temp
 
-
+    def procesar_scan(self):
+        return "read()"
     def procesar_valor(self, expresion, ts):
         if isinstance(expresion,OperacionVariable): 
             if ts.existePadre(expresion.id,ts):

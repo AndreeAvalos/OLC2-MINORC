@@ -111,6 +111,9 @@ class Return(Instruccion):
     def __init__(self, operacion):
         self.operacion = operacion
 
+class Scan(Instruccion):
+    def __init__(self):
+        super().__init__()
 
 class Print(Instruccion):
     def __init__(self, cadena, argumentos):

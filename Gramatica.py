@@ -544,6 +544,10 @@ def p_operacion_struct(p):
     'operacion  : ID PUNTO atributos'
     p[0] = OperacionStruct(p[1],p[3])
 
+def p_operacion_scan(p):
+    'operacion  :   SCAN PARIZQ PARDER'
+    p[0] = Scan()
+
 def p_operaciones_valor(p):
     'operacion      :   valor'
     p[0] = p[1]
