@@ -50,4 +50,22 @@ class Cuadruplos:
 
     def add(self, cuadruplo):
         self.cuadruplos.append(cuadruplo)
-    
+
+class NodoStruct:
+    def __init__(self,id):
+        self.id = id
+
+class TablaStruct:
+    def __init__(self,id):
+        self.atributos = []
+        self.indice = 0
+        self.id = id
+    def add(self, valor):
+        self.atributos.append(valor)
+
+    def generarStruct(self):
+        #generamos una nueva etiqueta
+        salida = "{0}[{1}]".format(self.id,self.indice)
+        #aumentamos su contador para que no existan mismos temporales
+        self.indice += 1
+        return salida

@@ -225,6 +225,7 @@ def p_instruccion(p):
                     |   main
                     |   metodo
                     |   funcion
+                    |   struct
                     |   error PYCOMA
                     |   error LLAVEDER
     '''
@@ -250,6 +251,11 @@ def p_declaracion2(p):
 def p_declaracion3(p):
     'decla          :   ID '
     p[0] = Declaracion(p[1],None,p.lineno(1),find_column(p.slice[1]))
+
+def p_declaracion4(p):
+    'declaracion  :   STRUCT ID declaraciones PYCOMA'
+    p[0] = DeclaracionesStruct(p[2],p[3])
+
 
 def p_main(p):
     'main   :   INTEGER MAIN PARIZQ PARDER LLAVEIZQ sentencias LLAVEDER'
@@ -287,6 +293,19 @@ def p_funcion_params(p):
     'funcion :   tipo ID PARIZQ parametros PARDER LLAVEIZQ sentencias LLAVEDER'
     p[0] = Funcion(p[1],p[2],p[4],p[7])
 
+def p_struct(p):
+    'struct :   STRUCT ID LLAVEIZQ sdeclaraciones LLAVEDER  PYCOMA'
+    p[0] = Struct(p[2],p[4])
+
+def p_sdeclaraciones(p):
+    'sdeclaraciones : sdeclaraciones declaracion'
+    p[1].append(p[2])
+
+def p_sdeclaraciones2(p):
+    'sdeclaraciones :  declaracion'
+    p[0] = [p[1]]
+
+
 def p_sentencias(p):
     'sentencias : sentencias sentencia'
     p[1].append(p[2])
@@ -308,6 +327,7 @@ def p_sentencia(p):
                     |   break
                     |   return
                     |   callMetodo
+                    |   print
                     |   error PYCOMA
                     |   error LLAVEDER
     '''
@@ -335,6 +355,20 @@ def p_tipo_asignacion(p):
                         |      XORIGUAL        operacion
     '''
     p[0] = OperacionAsignacion(p[1],p[2])
+
+def p_asignacion3(p):
+    'asignacion :   ID PUNTO atributos IGUAL operacion PYCOMA'
+    p[0] = AsignacionStruct(p[1],p[3],p[5])
+
+def p_atributos(p):
+    'atributos  : atributos PUNTO ID '
+    p[1].append(p[3])
+    p[0] = p[1]
+
+def p_atributos2(p):
+    'atributos  :   ID'
+    p[0] = [p[1]]
+
 #if simple
 def p_if(p):
     'if :   IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER'
@@ -406,6 +440,14 @@ def p_callMetodo(p):
 def p_callMetodo2(p):
     'callMetodo :   ID PARIZQ valores PARDER PYCOMA'
     p[0] = Llamada(p[1],p[3])
+
+def p_print(p):
+    'print  :   PRINT PARIZQ CADENA COMA valores PARDER PYCOMA'
+    p[0] = Print(p[3],p[5])
+
+def p_print2(p):
+    'print  :   PRINT PARIZQ CADENA PARDER PYCOMA'
+    p[0] = Print(p[3],None)
 
 def p_valores(p):
     'valores    :   valores COMA operacion'
@@ -498,7 +540,9 @@ def p_operaciones_funcion2(p):
     'operacion :   ID PARIZQ valores PARDER'
     p[0] = OperacionLlamada(p[1],p[3])
 
-
+def p_operacion_struct(p):
+    'operacion  : ID PUNTO atributos'
+    p[0] = OperacionStruct(p[1],p[3])
 
 def p_operaciones_valor(p):
     'operacion      :   valor'

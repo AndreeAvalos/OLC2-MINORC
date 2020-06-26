@@ -7,6 +7,12 @@ class Declaraciones(Instruccion):
         self.declaraciones = declaraciones
         super().__init__()
 
+class DeclaracionesStruct(Instruccion):
+    def __init__(self, tipo, declaraciones):
+        self.tipo = tipo
+        self.declaraciones = declaraciones
+        super().__init__()
+
 class Declaracion(Instruccion):
     def __init__(self, id, valor, line, column):
         self.id = id
@@ -46,6 +52,12 @@ class AsignacionCompuesta(Instruccion):
     def __init__(self, id, op1, operacion):
         self.id = id
         self.operadorIzq = op1
+        self.operacion = operacion
+
+class AsignacionStruct(Instruccion):
+    def __init__(self, id, atributos, operacion):
+        self.id = id
+        self.atributos = atributos
         self.operacion = operacion
 
 class If(Instruccion):
@@ -89,9 +101,21 @@ class Case(Instruccion):
 class Break(Instruccion):
     def __init__(self):
         super().__init__()
+
+class Struct(Instruccion):
+    def __init__(self, id, declaraciones):
+        self.id = id
+        self.declaraciones = declaraciones
+
 class Return(Instruccion):
     def __init__(self, operacion):
         self.operacion = operacion
+
+
+class Print(Instruccion):
+    def __init__(self, cadena, argumentos):
+        self.cadena = cadena
+        self.argumentos = argumentos
 
 class OperacionAsignacion(Instruccion):
     def __init__(self, operacion, op1):
@@ -119,6 +143,10 @@ class OperacionLlamada(Instruccion):
         self.id = id
         self.params = params
 
+class OperacionStruct(Instruccion):
+    def __init__(self,id,atributos):
+        self.id = id
+        self.atributos = atributos
 
 class OperacionNumero(Instruccion):
     def __init__(self,num, line, column):
