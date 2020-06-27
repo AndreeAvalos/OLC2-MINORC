@@ -13,6 +13,27 @@ class DeclaracionesStruct(Instruccion):
         self.declaraciones = declaraciones
         super().__init__()
 
+class DeclaracionesArreglo(Instruccion):
+    def __init__(self, tipo, declaraciones):
+        self.tipo = tipo
+        self.declaraciones = declaraciones
+
+class Arreglo(Instruccion):
+    def __init__(self, id, dimensiones, valores):
+        self.id = id 
+        self.dimensiones = dimensiones
+        self.valores = valores
+
+class DeclaracionesArregloStruct(Instruccion):
+    def __init__(self, tipo, declaraciones):
+        self.tipo = tipo
+        self.declaraciones = declaraciones
+
+class ArregloStruct(Instruccion):
+    def __init__(self, id, dimensiones):
+        self.id = id 
+        self.dimensiones = dimensiones
+
 class Declaracion(Instruccion):
     def __init__(self, id, valor, line, column):
         self.id = id
@@ -59,6 +80,25 @@ class AsignacionStruct(Instruccion):
         self.id = id
         self.atributos = atributos
         self.operacion = operacion
+
+class Atributo(Instruccion):
+    def __init__(self, id, indices):
+        self.id = id
+        self.indices = indices
+
+class AsignacionArreglo(Instruccion):
+    def __init__(self, id, indices, operacion):
+        self.id = id
+        self.indices = indices
+        self.operacion = operacion
+
+class AsignacionArregloStruct(Instruccion):
+    def __init__(self, id, indices,atributos, operacion):
+        self.id = id
+        self.indices = indices
+        self.atributos = atributos
+        self.operacion = operacion
+
 
 class If(Instruccion):
     def __init__(self,s_if, s_elif, s_else ):
@@ -147,8 +187,14 @@ class OperacionLlamada(Instruccion):
         self.params = params
 
 class OperacionStruct(Instruccion):
-    def __init__(self,id,atributos):
+    def __init__(self,id, atributos):
         self.id = id
+        self.atributos = atributos
+
+class OperacionArregloStruct(Instruccion):
+    def __init__(self,id,indices,atributos):
+        self.id = id
+        self.indices = indices
         self.atributos = atributos
 
 class OperacionNumero(Instruccion):
@@ -156,6 +202,11 @@ class OperacionNumero(Instruccion):
         self.val = num
         self.line = line
         self.column = column
+class OperacionArreglo(Instruccion):
+    def __init__(self, id, indices):
+        self.id = id
+        self.indices = indices
+
 
 class OperacionVariable(Instruccion):
     def __init__(self,id, line, column):

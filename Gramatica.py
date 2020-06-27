@@ -221,6 +221,8 @@ def p_instrucciones2(p):
 
 def p_instruccion(p):
     '''instruccion  :   declaracion
+                    |   declaracion_arreglo
+                    |   declaracion_arreglo_struct
                     |   asignacion
                     |   main
                     |   metodo
@@ -253,9 +255,76 @@ def p_declaracion3(p):
     p[0] = Declaracion(p[1],None,p.lineno(1),find_column(p.slice[1]))
 
 def p_declaracion4(p):
-    'declaracion  :   STRUCT ID declaraciones PYCOMA'
+    'declaracion    :   STRUCT ID declaraciones PYCOMA'
     p[0] = DeclaracionesStruct(p[2],p[3])
 
+def p_declaracion_arreglo(p):
+    'declaracion_arreglo    :   tipo declaraciones_arreglos PYCOMA'
+    p[0] = DeclaracionesArreglo(p[1],p[2])
+
+def p_declaracion_arreglos2(p):
+    'declaraciones_arreglos :   declaraciones_arreglos COMA decla_arreglo'
+    p[1].append(p[3])
+    p[0] = p[1]
+
+def p_declaracion_arreglos3(p):
+    'declaraciones_arreglos :   decla_arreglo'  
+    p[0] = [p[1]]
+
+def p_declaracion_arreglo2(p):
+    'decla_arreglo  :   ID corchetes IGUAL LLAVEIZQ llaves LLAVEDER'
+    p[0] = Arreglo(p[1],p[2],p[5])
+
+def p_declaracion_arreglo3(p):
+    'decla_arreglo  :   ID corchetes'
+    p[0] = Arreglo(p[1],None,None)
+
+def p_corchetes(p):
+    'corchetes  :   corchetes corchete'
+    p[1].append(p[2])
+    p[0] = p[1]
+
+def p_corchetes2(p):
+    'corchetes  :   corchete'
+    p[0] = [p[1]]
+
+def p_corchete(p):
+    'corchete   :   CORIZQ operacion CORDER'
+    p[0] = p[2]
+
+def p_llaves(p):
+    'llaves :   llaves COMA llave'
+    p[1].append(p[3])
+    p[0] = p[1]
+
+def p_llaves3(p):
+    'llaves :   llave'
+    p[0] = [p[1]]
+
+def p_llave(p):
+    'llave  :   operacion'
+    p[0] = p[1]
+
+def p_llaves2(p):
+    'llave :   LLAVEIZQ llaves LLAVEDER'
+    p[0] = p[2]
+
+def p_declaracion_arreglo_struct(p):
+    'declaracion_arreglo_struct : STRUCT ID arreglo_structs PYCOMA'
+    p[0] = DeclaracionesArregloStruct(p[2],p[3])
+
+def p_arreglo_structs(p):
+    'arreglo_structs    :   arreglo_structs COMA arreglo_struct'
+    p[1].append(p[3])
+    p[0] = p[1]
+
+def p_arreglo_structs2(p):
+    'arreglo_structs    :   arreglo_struct'
+    p[0] = [p[1]]
+
+def p_arreglo_structs3(p):
+    'arreglo_struct     :   ID corchetes'
+    p[0] = ArregloStruct(p[1],p[2])
 
 def p_main(p):
     'main   :   INTEGER MAIN PARIZQ PARDER LLAVEIZQ sentencias LLAVEDER'
@@ -298,13 +367,21 @@ def p_struct(p):
     p[0] = Struct(p[2],p[4])
 
 def p_sdeclaraciones(p):
-    'sdeclaraciones : sdeclaraciones declaracion'
+    'sdeclaraciones : sdeclaraciones sdeclaracion'
     p[1].append(p[2])
+    p[0] = p[1]
 
 def p_sdeclaraciones2(p):
-    'sdeclaraciones :  declaracion'
+    '''sdeclaraciones   :   sdeclaracion
+    '''
     p[0] = [p[1]]
 
+def p_sdeclaracion3(p):
+    '''sdeclaracion :   declaracion
+                    |   declaracion_arreglo
+                    |   declaracion_arreglo_struct
+    '''
+    p[0]=p[1]
 
 def p_sentencias(p):
     'sentencias : sentencias sentencia'
@@ -318,6 +395,8 @@ def p_sentencias2(p):
 
 def p_sentencia(p):
     '''sentencia    :   declaracion
+                    |   declaracion_arreglo
+                    |   declaracion_arreglo_struct
                     |   asignacion 
                     |   if
                     |   while
@@ -361,13 +440,30 @@ def p_asignacion3(p):
     p[0] = AsignacionStruct(p[1],p[3],p[5])
 
 def p_atributos(p):
-    'atributos  : atributos PUNTO ID '
+    'atributos  : atributos PUNTO atributo'
     p[1].append(p[3])
     p[0] = p[1]
 
 def p_atributos2(p):
-    'atributos  :   ID'
+    'atributos  :   atributo'
     p[0] = [p[1]]
+
+def p_atributo(p):
+    'atributo   :   ID'
+    p[0] = Atributo(p[1], None)
+
+def p_atributo2(p):
+    'atributo   :   ID corchetes'
+    p[0] = Atributo(p[1],p[2])
+
+def p_asignacion4(p):
+    'asignacion :   ID corchetes IGUAL operacion PYCOMA'
+    p[0] = AsignacionArreglo(p[1],p[2],p[4])
+
+def p_asignacion5(p):
+    'asignacion :   ID corchetes PUNTO atributos IGUAL operacion PYCOMA'
+    p[0] = AsignacionArregloStruct(p[1],p[2],p[4],p[6])
+
 
 #if simple
 def p_if(p):
@@ -431,7 +527,7 @@ def p_incremento(p):
     'incremento :   ID MAS MAS '
 def p_incremento2(p):
     'incremento :   ID MENOS MENOS'
-def p_incremento(p):
+def p_incremento3(p):
     'incremento :   ID tipo_asignacion '
 def p_callMetodo(p):
     'callMetodo :   ID PARIZQ PARDER PYCOMA'
@@ -529,6 +625,7 @@ def p_operaciones_unarias(p):
     '''operacion    :   MENOS   operacion   %prec UMENOS
                     |   NOT     operacion   %prec UMENOS
                     |   NOTBIT  operacion   %prec UMENOS
+                    |   ANDBIT  operacion   %prec UMENOS
     '''
     p[0] = OperacionUnaria(p[2], p[1],p.lineno(1),find_column(p.slice[1]))
 
@@ -547,6 +644,15 @@ def p_operacion_struct(p):
 def p_operacion_scan(p):
     'operacion  :   SCAN PARIZQ PARDER'
     p[0] = Scan()
+
+def p_operacion_arreglo(p):
+    'operacion  :   ID corchetes'
+    p[0] = OperacionArreglo(p[1],p[2])
+
+def p_operacion_arreglo_struct(p):
+    'operacion  :   ID corchetes PUNTO atributos'
+    p[0] = OperacionArregloStruct(p[1],p[2],p[4])
+
 
 def p_operaciones_valor(p):
     'operacion      :   valor'

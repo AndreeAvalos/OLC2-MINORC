@@ -6,6 +6,7 @@ ply/
 parser.out
 parsetab.py
 .vscode
+prueba.py
 
 # C extensions
 *.so

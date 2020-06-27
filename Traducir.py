@@ -104,6 +104,10 @@ class Traducir(threading.Thread):
             elif isinstance(instruccion, AsignacionCompuesta): self.procesar_asignacionCompuesta(instruccion,self.ts)
             elif isinstance(instruccion, AsignacionStruct): self.procesar_asignacionStruct(instruccion, self.ts)
             elif isinstance(instruccion, Struct):   self.recolectar_struct(instruccion)
+            elif isinstance(instruccion, DeclaracionesArreglo): self.procesar_declaracionesArreglo(instruccion, self.ts)
+            elif isinstance(instruccion, AsignacionArreglo): self.procesar_asignacionArreglo(instruccion, self.ts)
+            elif isinstance(instruccion, DeclaracionesArregloStruct): self.procesar_declaracionesArregloStruct(instruccion,self.ts)
+            elif isinstance(instruccion, AsignacionArregloStruct): self.procesar_asginacionArregloStruct(instruccion, self.ts)
 
     def recolectar_main(self, instruccion):
         if not "main" in self.funciones:
@@ -125,6 +129,7 @@ class Traducir(threading.Thread):
         if instruccion.tipo in self.structs:
             for instru in instruccion.declaraciones:
                 self.recolectar_declaracionStruct(instru, self.structs[instruccion.tipo])
+
         
     def recolectar_declaracionStruct(self, instruccion,tablaStruct):
         id = instruccion.id
@@ -184,13 +189,6 @@ class Traducir(threading.Thread):
         new_cuadruplo = Cuadruplo("exit","","","")
         self.cuadruplos.add(new_cuadruplo)
         self.etiquetas[self.etiqueta].append(new_cuadruplo)
-        '''local = TablaSimbolos()
-        local.setPadre(ts)
-        for sentencia in sentencias:
-            if isinstance(sentencia,Declaraciones): self.procesar_declaraciones(sentencia,local)
-            elif isinstance(sentencia,AsignacionSimple): self.procesar_asignacionSimple(sentencia,local)
-            elif isinstance(sentencia,AsignacionCompuesta): self.procesar_asignacionCompuesta(sentencia,local)
-            elif isinstance(sentencia,If):  self.procesar_if(sentencia,local)'''
 
     def procesar_declaraciones(self,instruccion,ts):
         for instru in instruccion.declaraciones:
@@ -214,6 +212,49 @@ class Traducir(threading.Thread):
                 new_cuadruplo = Cuadruplo("=", "0","",temp)
                 self.cuadruplos.add(new_cuadruplo)
                 self.etiquetas[self.etiqueta].append(new_cuadruplo)
+
+    def procesar_declaracionesArreglo(self,instruccion, ts):
+        for instru in instruccion.declaraciones:
+            self.procesar_arreglo(instru, ts)
+
+    def procesar_arreglo(self, instruccion, ts ):
+        id = instruccion.id
+        if not ts.existe(id):
+            temp = self.generarTemporal()
+            new_simbol = Simbolo(id, temp, 0, 0)
+            ts.add(new_simbol)
+            valores = instruccion.valores
+            new_cuadruplo = Cuadruplo("=", "array()","",temp)
+            self.cuadruplos.add(new_cuadruplo)
+            self.etiquetas[self.etiqueta].append(new_cuadruplo)
+            if valores:
+                self.__procesar_arreglo(temp,valores,ts)
+
+    def procesar_declaracionesArregloStruct(self,instruccion, ts):
+        for instru in instruccion.declaraciones:
+            self.procesar_arreglostruct(instru, ts)
+
+    def procesar_arreglostruct(self, instruccion, ts ):
+        id = instruccion.id
+        if not ts.existe(id):
+            temp = self.generarTemporal()
+            new_simbol = Simbolo(id, temp, 0, 0)
+            ts.add(new_simbol)
+            new_cuadruplo = Cuadruplo("=", "array()","",temp)
+            self.cuadruplos.add(new_cuadruplo)
+            self.etiquetas[self.etiqueta].append(new_cuadruplo)
+
+    def __procesar_arreglo(self, temporal, valores,ts):
+        indice = 0
+        for valor in valores:
+            if isinstance(valor, list):
+                self.__procesar_arreglo("{0}[{1}]".format(temporal, indice), valor,ts)
+            else:
+                last_temp = self.procesar_operacion(valor,ts)
+                new_cuadruplo = Cuadruplo("=",last_temp,"","{0}[{1}]".format(temporal, indice))
+                self.cuadruplos.add(new_cuadruplo)
+                self.etiquetas[self.etiqueta].append(new_cuadruplo)
+            indice+=1
 
     def procesar_declaracionesStruct(self,instruccion,ts):
         if instruccion.tipo in self.structs:
@@ -295,15 +336,68 @@ class Traducir(threading.Thread):
     def procesar_asignacionStruct(self, instruccion, ts):
         id = instruccion.id
         if ts.existePadre(id,ts):
+            atributos = ""
             temp = ts.getValor(id, ts).temporal
             last_temp = self.procesar_operacion(instruccion.operacion,ts)
-            atributos = ""
             for atributo in instruccion.atributos:
-                atributos+= "[\'"+atributo+"\']"
+                atributos += "[\'{0}\']".format(atributo.id)
+                if atributo.indices:
+                    for indice in atributo.indices:
+                        val = self.procesar_operacion(indice,ts)
+                        if isinstance(val, int):
+                            atributos+="[{0}]".format(val)
+                        elif "$t" in val:
+                            atributos+="[{0}]".format(val)
+                        else:
+                            atributos+="[\'{0}\']".format(val)
+                
+
             new_cuadruplo = Cuadruplo("=", last_temp,"",temp+atributos)
             self.cuadruplos.add(new_cuadruplo)
             self.etiquetas[self.etiqueta].append(new_cuadruplo)
 
+    def procesar_asignacionArreglo(self, instruccion, ts):
+        id = instruccion.id
+        if ts.existePadre(id,ts):
+            temp = ts.getValor(id, ts).temporal
+            last_temp = self.procesar_operacion(instruccion.operacion,ts)
+            valores = instruccion.indices
+            self.__arreglo(temp,valores,last_temp,ts)
+
+    def __arreglo(self, temporal, valores, last_temp,ts):
+        temp = temporal
+        for valor in valores:
+            indice = self.procesar_operacion(valor,ts)
+            temp += "[{0}]".format(indice)
+
+        new_cuadruplo = Cuadruplo("=",last_temp,"",temp)
+        self.cuadruplos.add(new_cuadruplo)
+        self.etiquetas[self.etiqueta].append(new_cuadruplo)
+
+    def procesar_asginacionArregloStruct(self,instruccion, ts):
+        ''
+        id = instruccion.id
+        if ts.existePadre(id,ts):
+            temp = ts.getValor(id, ts).temporal
+            last_temp = self.procesar_operacion(instruccion.operacion,ts)
+            for valor in instruccion.indices:
+                indice = self.procesar_operacion(valor,ts)
+                temp += "[{0}]".format(indice)
+            for atributo in instruccion.atributos:
+                temp += "[\'{0}\']".format(atributo.id)
+                if atributo.indices:
+                    for indice in atributo.indices:
+                        val = self.procesar_operacion(indice,ts)
+                        if isinstance(val, int):
+                            temp+="[{0}]".format(val)
+                        elif "$t" in val:
+                            temp+="[{0}]".format(val)
+                        else:
+                            temp+="[\'{0}\']".format(val)
+
+            new_cuadruplo = Cuadruplo("=", last_temp,"",temp)
+            self.cuadruplos.add(new_cuadruplo)
+            self.etiquetas[self.etiqueta].append(new_cuadruplo)
 
     def procesar_if(self,sentenciaif,ts):
         #operamos toda la condicion del if
@@ -506,10 +600,11 @@ class Traducir(threading.Thread):
                     #comprobamos si tienen el mismo numero de valores en sus parametros
                     if len(params) == len(sentencia.params):
                         #regresamos el apuntador hacia la primera posicion en la pila
-                        new_cuadruplo = Cuadruplo("-", "$sp",str(len(params)-1),"$sp")
-                        self.cuadruplos.add(new_cuadruplo)
-                        self.etiquetas[self.etiqueta].append(new_cuadruplo)
-                        #ahora asignamos los valores a una tabla local
+                        if len(params)-1 !=0:
+                            new_cuadruplo = Cuadruplo("-", "$sp",str(len(params)-1),"$sp")
+                            self.cuadruplos.add(new_cuadruplo)
+                            self.etiquetas[self.etiqueta].append(new_cuadruplo)
+                            #ahora asignamos los valores a una tabla local
                         contar_aux = 1
                         for param in params:
                             temp = self.generarTemporal()
@@ -741,7 +836,7 @@ class Traducir(threading.Thread):
             elif isinstance(sentencia,AsignacionSimple): self.procesar_asignacionSimple(sentencia,local)
             elif isinstance(sentencia,AsignacionCompuesta): self.procesar_asignacionCompuesta(sentencia,local)
             elif isinstance(sentencia, AsignacionStruct): self.procesar_asignacionStruct(sentencia, local)
-            elif isinstance(sentencia,If):  self.procesar_if(sentencia,local)
+            elif isinstance(sentencia,  If):  self.procesar_if(sentencia,local)
             elif isinstance(sentencia,While): self.procesar_while(sentencia,local)
             elif isinstance(sentencia,DoWhile): self.procesar_doWhile(sentencia,local)
             elif isinstance(sentencia, Llamada): self.procesar_llamada(sentencia,local)
@@ -749,8 +844,11 @@ class Traducir(threading.Thread):
             elif isinstance(sentencia, Break):  self.procesar_break()
             elif isinstance(sentencia, Return): self.procesar_return(sentencia,ts)
             elif isinstance(sentencia, Print): self.procesar_print(sentencia,local)
+            elif isinstance(sentencia, DeclaracionesArreglo): self.procesar_declaracionesArreglo(sentencia, local)
+            elif isinstance(sentencia, AsignacionArreglo): self.procesar_asignacionArreglo(sentencia, local)
+            elif isinstance(sentencia, DeclaracionesArregloStruct): self.procesar_declaracionesArregloStruct(sentencia, local)
+            elif isinstance(sentencia, AsignacionArregloStruct): self.procesar_asginacionArregloStruct(sentencia, local)
 
-    
 
     def procesar_operacion(self, operacion, ts):
         if isinstance(operacion,OperacionNumero): return self.procesar_valor(operacion, ts)
@@ -762,6 +860,10 @@ class Traducir(threading.Thread):
         elif isinstance(operacion, OperacionLlamada): return self.procesar_operacionLlamada(operacion,ts)
         elif isinstance(operacion, OperacionStruct): return self.procesar_operacionStruct(operacion,ts)
         elif isinstance(operacion, Scan): return self.procesar_scan()
+        elif isinstance(operacion, OperacionArreglo): return self.procesar_operacionArreglo(operacion, ts)
+        elif isinstance(operacion, OperacionArregloStruct): return self.procesar_operacionArregloStruct(operacion, ts)
+    
+
 
     def procesar_operacinBinaria(self,operacion,ts):
         
@@ -778,7 +880,7 @@ class Traducir(threading.Thread):
         op1 = self.procesar_operacion(operacion.operadorIzq,ts)
         operador = operacion.operacion
         temp = self.generarTemporal()
-        new_cuadruplo = Cuadruplo(operador,op1, "", temp)
+        new_cuadruplo = Cuadruplo("=",operador, op1, temp)
         self.cuadruplos.add(new_cuadruplo)
         self.etiquetas[self.etiqueta].append(new_cuadruplo)
         return temp
@@ -800,24 +902,76 @@ class Traducir(threading.Thread):
             val = ts.getValor(expresion.id, ts)
             atributos = ""
             for atributo in expresion.atributos:
-                atributos +="[\'"+atributo+"\']"
+                atributos += "[\'{0}\']".format(atributo.id)
+                if atributo.indices:
+                    for indice in atributo.indices:
+                        val2 = self.procesar_operacion(indice,ts)
+                        if isinstance(val2, int):
+                            atributos+="[{0}]".format(val2)
+                        elif "$t" in val2:
+                            atributos+="[{0}]".format(val2)
+                        else:
+                            atributos+="[\'{0}\']".format(val2)
+                
             temp = self.generarTemporal()
             new_cuadruplo = Cuadruplo("=",val.temporal+atributos,"",temp)
             self.cuadruplos.add(new_cuadruplo)
             self.etiquetas[self.etiqueta].append(new_cuadruplo)
             return temp
 
+    def procesar_operacionArregloStruct(self, expresion, ts):
+        id = expresion.id
+        if ts.existePadre(id,ts):
+            temp = ts.getValor(id, ts).temporal
+            for valor in expresion.indices:
+                indice = self.procesar_operacion(valor,ts)
+                temp += "[{0}]".format(indice)
+            for atributo in expresion.atributos:
+                temp += "[\'{0}\']".format(atributo.id)
+                if atributo.indices:
+                    for indice in atributo.indices:
+                        val = self.procesar_operacion(indice,ts)
+                        if isinstance(val, int):
+                            temp+="[{0}]".format(val)
+                        elif "$t" in val:
+                            temp+="[{0}]".format(val)
+                        else:
+                            temp+="[\'{0}\']".format(val)
+
+            new_temp = self.generarTemporal()
+            new_cuadruplo = Cuadruplo("=", temp,"",new_temp)
+            self.cuadruplos.add(new_cuadruplo)
+            self.etiquetas[self.etiqueta].append(new_cuadruplo)
+            return new_temp 
+
     def procesar_scan(self):
         return "read()"
+
+    def procesar_operacionArreglo(self, expresion, ts):
+        if ts.existePadre(expresion.id, ts):
+            new_temp = self.generarTemporal()
+            temp = ts.getValor(expresion.id, ts).temporal
+            for indice in expresion.indices:
+                val = self.procesar_operacion(indice,ts)
+                temp +="[{0}]".format(val)
+            new_cuadruplo = Cuadruplo("=", temp, "",new_temp)
+            self.cuadruplos.add(new_cuadruplo)
+            self.etiquetas[self.etiqueta].append(new_cuadruplo)
+            return new_temp
+
+
+
     def procesar_valor(self, expresion, ts):
         if isinstance(expresion,OperacionVariable): 
             if ts.existePadre(expresion.id,ts):
                 val = ts.getValor(expresion.id, ts)
-                temp = self.generarTemporal()
-                new_cuadruplo = Cuadruplo("=",val.temporal,"",temp)
-                self.cuadruplos.add(new_cuadruplo)
-                self.etiquetas[self.etiqueta].append(new_cuadruplo)
-                return temp
+                if "[" in val.temporal:
+                    temp = self.generarTemporal()
+                    new_cuadruplo = Cuadruplo("=",val.temporal,"",temp)
+                    self.cuadruplos.add(new_cuadruplo)
+                    self.etiquetas[self.etiqueta].append(new_cuadruplo)
+                    return temp
+                return val.temporal
         else:
             return expresion.val
         
