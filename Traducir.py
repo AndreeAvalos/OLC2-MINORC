@@ -9,7 +9,7 @@ class Traducir(threading.Thread):
                  args=(), kwargs=None, *, daemon=None):
         super().__init__(group=group, target=target, name=name,
                          daemon=daemon)
-
+                         
         self.ast = args[0]
         self.TC = args[1]
         self.C3D = args[2]
@@ -37,6 +37,9 @@ class Traducir(threading.Thread):
         self.is_return = False
         self.entro_recursivo = False
         self.index_struct = 2
+        self.index_for = 0
+        self.ambientes = []
+        self.index_dec = 0
 
 
     def run(self):
@@ -69,6 +72,7 @@ class Traducir(threading.Thread):
                     self.C3D.addItem(" {0}={1}{2};".format(cuadruplo.result,cuadruplo.arg1,cuadruplo.arg2))
                     print(" {0}={1}{2};".format(cuadruplo.result,cuadruplo.arg1,cuadruplo.arg2))
             self.C3D.addItem("")
+            print("")
 
     def imprimirCuadruplos(self):
         datos = []
@@ -108,7 +112,7 @@ class Traducir(threading.Thread):
             elif isinstance(instruccion, AsignacionArreglo): self.procesar_asignacionArreglo(instruccion, self.ts)
             elif isinstance(instruccion, DeclaracionesArregloStruct): self.procesar_declaracionesArregloStruct(instruccion,self.ts)
             elif isinstance(instruccion, AsignacionArregloStruct): self.procesar_asginacionArregloStruct(instruccion, self.ts)
-
+            
     def recolectar_main(self, instruccion):
         if not "main" in self.funciones:
             self.funciones["main"] = {"tipo":"void","sentencias":instruccion.sentencias,"params":None}
@@ -129,15 +133,13 @@ class Traducir(threading.Thread):
         if instruccion.tipo in self.structs:
             for instru in instruccion.declaraciones:
                 self.recolectar_declaracionStruct(instru, self.structs[instruccion.tipo])
-
-        
+    
     def recolectar_declaracionStruct(self, instruccion,tablaStruct):
         id = instruccion.id
         if not self.ts.existe(id):
             temp = tablaStruct.generarStruct()
             new_simbol = Simbolo(id, temp, instruccion.line, instruccion.column)
             self.ts.add(new_simbol)
-
 
     def recolectar_declaracion(self, instruccion):
         id = instruccion.id
@@ -328,6 +330,14 @@ class Traducir(threading.Thread):
                 new_cuadruplo = Cuadruplo(">>", temp,last_temp,temp)
                 self.cuadruplos.add(new_cuadruplo)
                 self.etiquetas[self.etiqueta].append(new_cuadruplo)
+            elif operacion == "++":
+                new_cuadruplo = Cuadruplo("+", temp,"1",temp)
+                self.cuadruplos.add(new_cuadruplo)
+                self.etiquetas[self.etiqueta].append(new_cuadruplo)
+            elif operacion == "--":
+                new_cuadruplo = Cuadruplo("-", temp,"1",temp)
+                self.cuadruplos.add(new_cuadruplo)
+                self.etiquetas[self.etiqueta].append(new_cuadruplo)
 
             new_cuadruplo = Cuadruplo("=",temp,"", ts.getValor(id, ts).temporal)
             self.cuadruplos.add(new_cuadruplo)
@@ -487,6 +497,7 @@ class Traducir(threading.Thread):
     def procesar_doWhile(self,sentencia, ts):
         new_do = self.generarDO()
         new_end = self.generarEND()
+        
 
         activo = False
         if not self.is_break:
@@ -548,6 +559,63 @@ class Traducir(threading.Thread):
     
     def procesar_for(self,sentencia,ts):
         'aun no, ta muy feo xd'
+        
+        new_etiqueta = self.generarEND()
+        activo = False
+        inicializacion = sentencia.inicializacion
+        condicion = sentencia.condicion
+        incremento = sentencia.incremento
+        sentencias = sentencia.sentencias
+        old_ambiente = self.sentencia_break
+
+        new_incremental = self.generarINCREMENTALES()
+        self.sentencia_break = new_incremental
+
+        self.ambientes.append(old_ambiente)
+
+        local = TablaSimbolos()
+        local.setPadre(ts)
+        #procesar declaracion 
+        if isinstance(inicializacion, Declaracion):
+            self.procesar_declaracion(inicializacion, local)
+        else:
+            self.procesar_asignacionSimple(inicializacion, ts)
+
+        new_for = self.generarFOR()
+        new_cuadruplo2 = Cuadruplo("goto",new_for, "","")
+        self.cuadruplos.add(new_cuadruplo2)
+        self.etiquetas[self.etiqueta].append(new_cuadruplo2)
+
+        old_etiqueta = self.etiqueta
+        self.etiqueta = new_for
+        self.etiquetas[self.etiqueta] = []
+
+        #procesar condicion
+        last_temp = self.procesar_operacion(condicion, local)
+        new_if = self.generarIF()
+        new_cuadruplo = Cuadruplo("if",last_temp,"",new_if)
+        self.cuadruplos.add(new_cuadruplo)
+        self.etiquetas[self.etiqueta].append(new_cuadruplo)
+        new_cuadruplo = Cuadruplo("goto",new_etiqueta, "","")
+        self.cuadruplos.add(new_cuadruplo)
+        self.etiquetas[self.etiqueta].append(new_cuadruplo)
+        self.etiqueta = new_if
+        self.etiquetas[self.etiqueta] = []
+        self.procesar_sentencias(sentencias, local)
+        #procesamos el incremento o decremento 
+        
+        new_cuadruplo = Cuadruplo("goto",new_incremental, "","")
+        self.cuadruplos.add(new_cuadruplo)
+        self.etiquetas[self.etiqueta].append(new_cuadruplo)
+        self.etiqueta = new_incremental
+        self.etiquetas[self.etiqueta] = []
+        self.procesar_asignacionCompuesta(incremento, local)
+        #agregamos la etiqueta goto para regresar al for
+        self.etiquetas[self.etiqueta].append(new_cuadruplo2)
+        
+        
+        self.etiquetas[new_etiqueta] = []
+        self.etiqueta = new_etiqueta
 
     def procesar_llamada(self, sentencia, ts):
         #comparamos si estamos en la misma funcion
@@ -753,7 +821,8 @@ class Traducir(threading.Thread):
         self.etiqueta = new_end
         
     def procesar_break(self):
-        new_cuadruplo = Cuadruplo("goto",self.sentencia_break, "","")
+        ambiente = self.ambientes.pop()
+        new_cuadruplo = Cuadruplo("goto",ambiente, "","")
         self.cuadruplos.add(new_cuadruplo)
         self.etiquetas[self.etiqueta].append(new_cuadruplo)
         
@@ -848,6 +917,19 @@ class Traducir(threading.Thread):
             elif isinstance(sentencia, AsignacionArreglo): self.procesar_asignacionArreglo(sentencia, local)
             elif isinstance(sentencia, DeclaracionesArregloStruct): self.procesar_declaracionesArregloStruct(sentencia, local)
             elif isinstance(sentencia, AsignacionArregloStruct): self.procesar_asginacionArregloStruct(sentencia, local)
+            elif isinstance(sentencia, For): self.procesar_for(sentencia, local)
+            elif isinstance(sentencia, GoTo): self.procesar_goto(sentencia)
+            elif isinstance(sentencia, Etiqueta): self.procesar_etiqueta(sentencia)
+
+    def procesar_etiqueta(self, sentencia):
+        id = sentencia.id
+        self.etiquetas[id] = []
+        self.etiqueta = id
+    
+    def procesar_goto(self, sentencia):
+        cuadruplo = Cuadruplo("goto",sentencia.id,"","")
+        self.cuadruplos.add(cuadruplo)
+        self.etiquetas[self.etiqueta].append(cuadruplo)
 
 
     def procesar_operacion(self, operacion, ts):
@@ -959,8 +1041,6 @@ class Traducir(threading.Thread):
             self.etiquetas[self.etiqueta].append(new_cuadruplo)
             return new_temp
 
-
-
     def procesar_valor(self, expresion, ts):
         if isinstance(expresion,OperacionVariable): 
             if ts.existePadre(expresion.id,ts):
@@ -975,7 +1055,6 @@ class Traducir(threading.Thread):
         else:
             return expresion.val
         
-
     def generarTemporal(self):
         #generamos un nuevo temporal del tipo $tn
         salida = "$t{0}".format(self.index_temporal)
@@ -995,6 +1074,13 @@ class Traducir(threading.Thread):
         salida = "while{0}".format(self.index_while)
         #aumentamos su contador para que no existan mismos temporales
         self.index_while += 1
+        return salida
+
+    def generarFOR(self):
+        #generamos una nueva etiqueta para los if
+        salida = "for{0}".format(self.index_for)
+        #aumentamos su contador para que no existan mismos temporales
+        self.index_for += 1
         return salida
 
     def generarSWITCH(self):
@@ -1051,4 +1137,11 @@ class Traducir(threading.Thread):
         salida = "$s{0}".format(self.index_struct)
         #aumentamos su contador para que no existan mismos temporales
         self.index_struct += 1
+        return salida
+
+    def generarINCREMENTALES(self):
+        #generamos una nueva etiqueta
+        salida = "dec{0}".format(self.index_dec)
+        #aumentamos su contador para que no existan mismos temporales
+        self.index_dec += 1
         return salida

@@ -160,6 +160,14 @@ class Print(Instruccion):
         self.cadena = cadena
         self.argumentos = argumentos
 
+class GoTo(Instruccion):
+    def __init__(self,id):
+        self.id = id
+
+class Etiqueta(Instruccion):
+    def __init__(self,id):
+        self.id = id       
+
 class OperacionAsignacion(Instruccion):
     def __init__(self, operacion, op1):
         self.operadorIzq = op1

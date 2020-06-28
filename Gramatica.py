@@ -78,6 +78,8 @@ tokens = [
     'ORIGUAL',
     'SHIFTDERIGUAL',
     'SHIFTIZQIGUAL',
+    'INCREMENTO',
+    'DECREMENTO'
 
 ] + list(reservadas.values())
 
@@ -123,6 +125,8 @@ t_SHIFTDERIGUAL = r'>>='
 t_ANDIGUAL = r'&='
 t_ORIGUAL = r'\|='
 t_XORIGUAL = r'\^='
+t_INCREMENTO = r'\+\+'
+t_DECREMENTO = r'--'
 
 #t_ESCAPE =r'\"\\n\"'
 
@@ -155,7 +159,7 @@ def t_ID(t):
 def t_CADENA(t):
     r'\".*?\"'
     t.value = t.value[1:-1] # remuevo las comillas
-    return t 
+    return t
 
 def t_CARACTER(t):
     r'\'.\''
@@ -407,10 +411,20 @@ def p_sentencia(p):
                     |   return
                     |   callMetodo
                     |   print
+                    |   goto
+                    |   etiqueta
                     |   error PYCOMA
                     |   error LLAVEDER
     '''
     p[0] = p[1]
+
+def p_goto(p):
+    'goto   :   GOTO ID PYCOMA'
+    p[0] = GoTo(p[2])
+
+def p_etiqueta(p):
+    'etiqueta   :   ID DOSPUNTOS   '
+    p[0] = Etiqueta(p[1])
 
 #aqui puede venir tambien tipos de arreglos, structs pero para comenzar una asignacion simple
 def p_asignacion(p):
@@ -434,6 +448,12 @@ def p_tipo_asignacion(p):
                         |      XORIGUAL        operacion
     '''
     p[0] = OperacionAsignacion(p[1],p[2])
+
+def p_tipo_asignacion2(p):
+    '''tipo_asignacion  :      INCREMENTO
+                        |      DECREMENTO
+    '''
+    p[0] = OperacionAsignacion(p[1],None)
 
 def p_asignacion3(p):
     'asignacion :   ID PUNTO atributos IGUAL operacion PYCOMA'
@@ -516,19 +536,20 @@ def p_do_while(p):
 
 def p_for(p):
     'for    :   FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER'
-
+    p[0] = For(p[3],p[5],p[7],p[10])
+    
 def p_inicializacion(p):
     'inicializacion :   tipo ID IGUAL operacion '
+    p[0] = Declaracion(p[2],p[4],0,0)
 
 def p_inicializacion2(p):
     'inicializacion :   ID IGUAL operacion '
+    p[0] = AsignacionSimple(p[1],p[3])
 
-def p_incremento(p):
-    'incremento :   ID MAS MAS '
-def p_incremento2(p):
-    'incremento :   ID MENOS MENOS'
 def p_incremento3(p):
     'incremento :   ID tipo_asignacion '
+    p[0] = AsignacionCompuesta(p[1],p[2].operadorIzq,p[2].operacion)
+
 def p_callMetodo(p):
     'callMetodo :   ID PARIZQ PARDER PYCOMA'
     p[0] = Llamada(p[1],None)
@@ -652,6 +673,9 @@ def p_operacion_arreglo(p):
 def p_operacion_arreglo_struct(p):
     'operacion  :   ID corchetes PUNTO atributos'
     p[0] = OperacionArregloStruct(p[1],p[2],p[4])
+def p_operaciones_parentesis(p):
+    'operacion  :   PARIZQ operacion PARDER'
+    p[0] = p[2]
 
 
 def p_operaciones_valor(p):
@@ -679,10 +703,10 @@ def p_valor_double(p):
     p[0] = OperacionNumero(p[1],p.lineno(1),find_column(p.slice[1]))
 def p_valor_char(p):
     'valor          : CARACTER'   
-    p[0] = OperacionCaracter(p[1],p.lineno(1),find_column(p.slice[1]))
+    p[0] = OperacionCaracter("\'"+p[1]+"\'",p.lineno(1),find_column(p.slice[1]))
 def p_valor_cadena(p):
     'valor          : CADENA'  
-    p[0] = OperacionCadena(p[1],p.lineno(1),find_column(p.slice[1])) 
+    p[0] = OperacionCadena("\""+p[1]+"\"",p.lineno(1),find_column(p.slice[1])) 
 
 def p_error(p):
     print("Error sintáctico en '%s'" % p.value, str(p.lineno))
