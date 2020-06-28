@@ -3,6 +3,10 @@ import time
 from Instruccion import *
 from TablaSimbolo import *
 from PyQt5 import QtWidgets,QtCore
+from augus.Ejecutar import Ejecutor
+import augus.GramaticaA as GramaticaA
+from augus.Recolectar import Recolectar
+from augus.TablaSimbolosA import TablaSimbolosA as TSA
 
 class Traducir(threading.Thread):
     def __init__(self, group=None, target=None, name=None,
@@ -13,6 +17,8 @@ class Traducir(threading.Thread):
         self.ast = args[0]
         self.TC = args[1]
         self.C3D = args[2]
+        self.consola = args[3]
+        self.GTS = args[4]
         self.ts = TablaSimbolos()
         self.index_temporal = 0
         self.cuadruplos = Cuadruplos()
@@ -40,6 +46,8 @@ class Traducir(threading.Thread):
         self.index_for = 0
         self.ambientes = []
         self.index_dec = 0
+        self.codigo = ""
+        self.in_console = None
 
 
     def run(self):
@@ -47,32 +55,48 @@ class Traducir(threading.Thread):
         self.procesar()
         self.imprimirCuadruplos()
         self.imprimir3D()
+        self.analizar()
+
+    def analizar(self):
+        ast2 = GramaticaA.parse(self.codigo)
+        ast3 = ast2.instruccion
+        ts = TSA()
+        recolector = Recolectar(ast3,ts,[])
+        recolector.procesar()
+        self.in_console = Ejecutor(args=(ast3,ts,[],"",self.consola, self.GTS),daemon=True)
+        self.in_console.start()
+    
+    def setParams(self, linea, estado):
+        self.in_console.setText(linea)
+        self.in_console.setState(estado)
+
 
     def imprimir3D(self):
+        self.codigo = ""
         for etiqueta in self.etiquetas:
             self.C3D.addItem(etiqueta+":")
-            print(etiqueta+":")
+            self.codigo += etiqueta+":\n" 
             for cuadruplo in self.etiquetas[etiqueta]:
                 if cuadruplo.op == "if":
                     self.C3D.addItem(" if({0}) goto {1};".format(cuadruplo.arg1, cuadruplo.result))
-                    print(" if({0}) goto {1};".format(cuadruplo.arg1, cuadruplo.result))
+                    self.codigo+=" if({0}) goto {1};".format(cuadruplo.arg1, cuadruplo.result)
                 elif cuadruplo.op == "goto":
                     self.C3D.addItem(" goto {0};".format(cuadruplo.arg1))
-                    print(" goto {0};".format(cuadruplo.arg1))
+                    self.codigo+=" goto {0};".format(cuadruplo.arg1)
                 elif cuadruplo.op == "print":
                     self.C3D.addItem("  print({0});".format(cuadruplo.arg1))
-                    print(" print({0});".format(cuadruplo.arg1))
+                    self.codigo+=" print({0});".format(cuadruplo.arg1)
                 elif cuadruplo.op == "exit":
                     self.C3D.addItem("  exit;")
-                    print(" exit;")
+                    self.codigo+=" exit;"
                 elif cuadruplo.op != "=":
                     self.C3D.addItem(" {0}={1} {2} {3};".format(cuadruplo.result,cuadruplo.arg1, cuadruplo.op, cuadruplo.arg2))
-                    print(" {0}={1} {2} {3};".format(cuadruplo.result,cuadruplo.arg1, cuadruplo.op, cuadruplo.arg2))
+                    self.codigo+= " {0}={1} {2} {3};".format(cuadruplo.result,cuadruplo.arg1, cuadruplo.op, cuadruplo.arg2)
                 else:
                     self.C3D.addItem(" {0}={1}{2};".format(cuadruplo.result,cuadruplo.arg1,cuadruplo.arg2))
-                    print(" {0}={1}{2};".format(cuadruplo.result,cuadruplo.arg1,cuadruplo.arg2))
+                    self.codigo+=" {0}={1}{2};".format(cuadruplo.result,cuadruplo.arg1,cuadruplo.arg2)
             self.C3D.addItem("")
-            print("")
+            self.codigo+="\n"
 
     def imprimirCuadruplos(self):
         datos = []
@@ -821,8 +845,8 @@ class Traducir(threading.Thread):
         self.etiqueta = new_end
         
     def procesar_break(self):
-        ambiente = self.ambientes.pop()
-        new_cuadruplo = Cuadruplo("goto",ambiente, "","")
+        #ambiente = self.ambientes.pop()
+        new_cuadruplo = Cuadruplo("goto",self.sentencia_break, "","")
         self.cuadruplos.add(new_cuadruplo)
         self.etiquetas[self.etiqueta].append(new_cuadruplo)
         
@@ -971,7 +995,7 @@ class Traducir(threading.Thread):
         if operacion.id in self.funciones:
             funcion = self.funciones[operacion.id]
             if funcion["tipo"]!= "void":
-                self.procesar_sentencias([Llamada(operacion.id, operacion.params)], ts)
+                self.procesar_sentencias([Llamada(operacion.id, operacion.params,0)], ts)
                 return "$v0"
             else:
                 print("Error no es una funcion")

@@ -7,6 +7,7 @@ parser.out
 parsetab.py
 .vscode
 prueba.py
+#augus/ply
 
 # C extensions
 *.so

@@ -2,37 +2,43 @@ class Instruccion:
     'Clase para interfaz'
 
 class Declaraciones(Instruccion):
-    def __init__(self, tipo, declaraciones):
+    def __init__(self, tipo, declaraciones, line):
         self.tipo = tipo
         self.declaraciones = declaraciones
+        self.line =line
         super().__init__()
 
 class DeclaracionesStruct(Instruccion):
-    def __init__(self, tipo, declaraciones):
+    def __init__(self, tipo, declaraciones, line):
         self.tipo = tipo
         self.declaraciones = declaraciones
+        self.line =line
         super().__init__()
 
 class DeclaracionesArreglo(Instruccion):
-    def __init__(self, tipo, declaraciones):
+    def __init__(self, tipo, declaraciones, line):
         self.tipo = tipo
         self.declaraciones = declaraciones
+        self.line =line
 
 class Arreglo(Instruccion):
-    def __init__(self, id, dimensiones, valores):
+    def __init__(self, id, dimensiones, valores, line):
         self.id = id 
         self.dimensiones = dimensiones
         self.valores = valores
+        self.line =line
 
 class DeclaracionesArregloStruct(Instruccion):
-    def __init__(self, tipo, declaraciones):
+    def __init__(self, tipo, declaraciones, line):
         self.tipo = tipo
         self.declaraciones = declaraciones
+        self.line =line
 
 class ArregloStruct(Instruccion):
-    def __init__(self, id, dimensiones):
+    def __init__(self, id, dimensiones, line):
         self.id = id 
         self.dimensiones = dimensiones
+        self.line =line
 
 class Declaracion(Instruccion):
     def __init__(self, id, valor, line, column):
@@ -42,62 +48,72 @@ class Declaracion(Instruccion):
         #Si valor es none es porque no tiene asignacion.
         self.valor = valor
 class Main(Instruccion):
-    def __init__(self, sentencias):
+    def __init__(self, sentencias, line):
         self.sentencias = sentencias
+        self.line = line
 
 class Metodo(Instruccion):
-    def __init__(self, id, params, sentencias):
+    def __init__(self, id, params, sentencias, line):
         self.id = id
         self.params = params
         self.sentencias = sentencias
+        self.line =line
 
 class Funcion(Instruccion):
-    def __init__(self,tipo, id, params, sentencias):
+    def __init__(self,tipo, id, params, sentencias, line):
         self.tipo = tipo
         self.id = id
         self.params = params
         self.sentencias = sentencias
+        self.line =line
 
 class Llamada(Instruccion):
-    def __init__(self,id,params):
+    def __init__(self,id,params, line):
         self.id = id
         self.params = params
+        self.line =line
 
 
 class AsignacionSimple(Instruccion):
-    def __init__(self, id, valor):
+    def __init__(self, id, valor, line):
         self.id = id
         self.valor = valor
+        self.line =line
 
 class AsignacionCompuesta(Instruccion):
-    def __init__(self, id, op1, operacion):
+    def __init__(self, id, op1, operacion, line):
         self.id = id
         self.operadorIzq = op1
         self.operacion = operacion
+        self.line =line
 
 class AsignacionStruct(Instruccion):
-    def __init__(self, id, atributos, operacion):
+    def __init__(self, id, atributos, operacion, line):
         self.id = id
         self.atributos = atributos
         self.operacion = operacion
+        self.line =line
 
 class Atributo(Instruccion):
-    def __init__(self, id, indices):
+    def __init__(self, id, indices, line):
         self.id = id
         self.indices = indices
+        self.line =line
 
 class AsignacionArreglo(Instruccion):
-    def __init__(self, id, indices, operacion):
+    def __init__(self, id, indices, operacion, line):
         self.id = id
         self.indices = indices
         self.operacion = operacion
+        self.line =line
 
 class AsignacionArregloStruct(Instruccion):
-    def __init__(self, id, indices,atributos, operacion):
+    def __init__(self, id, indices,atributos, operacion, line):
         self.id = id
         self.indices = indices
         self.atributos = atributos
         self.operacion = operacion
+        self.line =line
 
 
 class If(Instruccion):
@@ -107,66 +123,78 @@ class If(Instruccion):
         self.s_else = s_else #sentencia else
     
 class SentenciaIf(Instruccion):
-    def __init__(self, condicion, sentencias):
+    def __init__(self, condicion, sentencias, line):
         self.condicion = condicion
         self.sentencias = sentencias
+        self.line =line
         
 class While(Instruccion):
-    def __init__(self, condicion, sentencias):
+    def __init__(self, condicion, sentencias, line):
         self.condicion = condicion
         self.sentencias = sentencias
+        self.line =line
 
 class DoWhile(Instruccion):
-    def __init__(self, condicion, sentencias):
+    def __init__(self, condicion, sentencias, line):
         self.condicion = condicion
         self.sentencias = sentencias
+        self.line =line
 
 class For(Instruccion):
-    def __init__(self, inicializacion, condicion, incremento, sentencias):
+    def __init__(self, inicializacion, condicion, incremento, sentencias, line):
         self.inicializacion = inicializacion
         self.condicion = condicion
         self.incremento = incremento
         self.sentencias = sentencias
+        self.line =line
 
 class Switch(Instruccion):
-    def __init__(self, condicion,casos):
+    def __init__(self, condicion,casos, line):
         self.condicion = condicion
         self.casos = casos
+        self.line =line
 
 class Case(Instruccion):
-    def __init__(self, operacion, sentencias):
+    def __init__(self, operacion, sentencias, line):
         self.operacion = operacion
         self.sentencias = sentencias
+        self.line =line
         
 class Break(Instruccion):
-    def __init__(self):
+    def __init__(self, line):
+        self.line =line
         super().__init__()
 
 class Struct(Instruccion):
-    def __init__(self, id, declaraciones):
+    def __init__(self, id, declaraciones, line):
         self.id = id
         self.declaraciones = declaraciones
+        self.line =line
 
 class Return(Instruccion):
-    def __init__(self, operacion):
+    def __init__(self, operacion, line):
         self.operacion = operacion
+        self.line =line
 
 class Scan(Instruccion):
     def __init__(self):
         super().__init__()
 
 class Print(Instruccion):
-    def __init__(self, cadena, argumentos):
+    def __init__(self, cadena, argumentos, line):
         self.cadena = cadena
         self.argumentos = argumentos
+        self.line =line
 
 class GoTo(Instruccion):
-    def __init__(self,id):
+    def __init__(self,id, line):
         self.id = id
+        self.line =line
 
 class Etiqueta(Instruccion):
-    def __init__(self,id):
-        self.id = id       
+    def __init__(self,id, line):
+        self.id = id
+        self.line =line       
 
 class OperacionAsignacion(Instruccion):
     def __init__(self, operacion, op1):
