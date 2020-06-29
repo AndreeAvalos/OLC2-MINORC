@@ -37,14 +37,13 @@ class Traducir(threading.Thread):
         self.index_switch =0 
         self.index_case = 0
         self.index_default = 0
-        self.sentencia_break =""
-        self.is_break = False
         self.sentencia_return = ""
         self.is_return = False
         self.entro_recursivo = False
         self.index_struct = 2
         self.index_for = 0
         self.ambientes = []
+        self.ambientes_continue = []
         self.index_dec = 0
         self.codigo = ""
         self.in_console = None
@@ -209,9 +208,10 @@ class Traducir(threading.Thread):
         new_cuadruplo = Cuadruplo("=","array()","","$s0")
         self.cuadruplos.add(new_cuadruplo)
         self.etiquetas[self.etiqueta].insert(0,new_cuadruplo)
-
+        new_end = self.generarEtiqueta()
+        self.ambientes.append(new_end)
         self.procesar_sentencias(sentencias, ts)
-
+        self.ambientes.pop()
         new_cuadruplo = Cuadruplo("exit","","","")
         self.cuadruplos.add(new_cuadruplo)
         self.etiquetas[self.etiqueta].append(new_cuadruplo)
@@ -435,11 +435,9 @@ class Traducir(threading.Thread):
 
     def procesar_if(self,sentenciaif,ts):
         #operamos toda la condicion del if
-        new_etiqueta = self.generarEtiqueta()
-        activo = False
-        if not self.is_break:
-            self.sentencia_break = new_etiqueta
-            activo = True
+        new_etiqueta = self.generarEND()
+       
+       
         s_if = sentenciaif.s_if
         s_elif = sentenciaif.s_elif
         s_else = sentenciaif.s_else
@@ -484,19 +482,18 @@ class Traducir(threading.Thread):
         self.etiquetas[self.etiqueta].append(new_cuadruplo)
         self.etiquetas[new_etiqueta] = []
         self.etiqueta = new_etiqueta
-        if activo:
-            self.is_break = False
+
 
     def procesar_while(self,sentenciaWhile, ts):
         new_etiqueta = self.generarEND()
 
-        activo = False
-        if not self.is_break:
-            self.sentencia_break = new_etiqueta
-            self.is_break = True
-            activo = True
+        self.ambientes.append(new_etiqueta)
+
+       
 
         new_while = self.generarWHILE()
+        self.ambientes_continue.append(new_while)
+
         new_cuadruplo = Cuadruplo("goto",new_while, "","")
         #self.cuadruplos.add(new_cuadruplo)
         self.etiquetas[self.etiqueta].append(new_cuadruplo)
@@ -515,20 +512,17 @@ class Traducir(threading.Thread):
         self.etiquetas[self.etiqueta].append(new_cuadruplo)
         self.etiquetas[new_etiqueta] = []
         self.etiqueta = new_etiqueta
-        if activo:
-            self.is_break = False
+
+        self.ambientes.pop()
+        self.ambientes_continue.pop()
+
 
     def procesar_doWhile(self,sentencia, ts):
         new_do = self.generarDO()
         new_end = self.generarEND()
+        self.ambientes.append(new_end)
+        self.ambientes_continue.append(new_do)
         
-
-        activo = False
-        if not self.is_break:
-            self.sentencia_break = new_end
-            self.is_break = True
-            activo = True
-
 
         new_while = self.generarWHILE()
         #generamos cuadruplo goto do
@@ -578,24 +572,26 @@ class Traducir(threading.Thread):
         self.etiqueta = new_end
         #procedemos a crear la etiqueta end en nuestra lista de etiquetas para cuadruplos
         self.etiquetas[new_end] = []
-        if activo:
-            self.is_break = False
+        self.ambientes.pop()
+        self.ambientes_continue.pop()
     
     def procesar_for(self,sentencia,ts):
         'aun no, ta muy feo xd'
         
         new_etiqueta = self.generarEND()
+        self.ambientes.append(new_etiqueta)
+
         activo = False
         inicializacion = sentencia.inicializacion
         condicion = sentencia.condicion
         incremento = sentencia.incremento
         sentencias = sentencia.sentencias
-        old_ambiente = self.sentencia_break
 
         new_incremental = self.generarINCREMENTALES()
-        self.sentencia_break = new_incremental
+        
+        self.ambientes_continue.append(new_incremental)
 
-        self.ambientes.append(old_ambiente)
+        
 
         local = TablaSimbolos()
         local.setPadre(ts)
@@ -640,12 +636,15 @@ class Traducir(threading.Thread):
         
         self.etiquetas[new_etiqueta] = []
         self.etiqueta = new_etiqueta
+        self.ambientes.pop()
+        self.ambientes_continue.pop()
 
     def procesar_llamada(self, sentencia, ts):
         #comparamos si estamos en la misma funcion
         if sentencia.id != self.ambito_ejecucion:
             #comprobamos si tiene parametros
             new_END = self.generarEND()
+            self.ambientes.append(new_END)
 
             self.sentencia_return = new_END
             old_ambiente = self.ambito_ejecucion
@@ -677,7 +676,9 @@ class Traducir(threading.Thread):
             self.last_etiqueta = new_etiqueta
             new_cuadruplo = Cuadruplo("goto",new_etiqueta,"","")
             self.cuadruplos.add(new_cuadruplo)
-            
+
+            self.ambientes_continue.append(new_etiqueta)
+
             self.etiquetas[self.etiqueta].append(new_cuadruplo)  
             self.etiqueta = new_etiqueta
             #otro comentario random
@@ -737,6 +738,7 @@ class Traducir(threading.Thread):
                 self.etiqueta = old_etiqueta
 
             self.ambito_ejecucion = old_ambiente
+            self.ambientes.pop()
         else:
             'some action'
             #print(">>AQUI DEBERIA ESTA EN EL MISMO AMBITO DE EJECUCION")
@@ -788,7 +790,6 @@ class Traducir(threading.Thread):
                 default = caso
         #generar end para salir del ciclo
         new_end = self.generarEtiqueta()
-        self.sentencia_break = new_end
         #primero, tenemos que tener la condicion
         last_temp = self.procesar_operacion(sentencia.condicion,ts)
         #area para traducir todos los casos
@@ -845,8 +846,7 @@ class Traducir(threading.Thread):
         self.etiqueta = new_end
         
     def procesar_break(self):
-        #ambiente = self.ambientes.pop()
-        new_cuadruplo = Cuadruplo("goto",self.sentencia_break, "","")
+        new_cuadruplo = Cuadruplo("goto",self.ambientes[len(self.ambientes)-1], "","")
         self.cuadruplos.add(new_cuadruplo)
         self.etiquetas[self.etiqueta].append(new_cuadruplo)
         
@@ -944,6 +944,7 @@ class Traducir(threading.Thread):
             elif isinstance(sentencia, For): self.procesar_for(sentencia, local)
             elif isinstance(sentencia, GoTo): self.procesar_goto(sentencia)
             elif isinstance(sentencia, Etiqueta): self.procesar_etiqueta(sentencia)
+            elif isinstance(sentencia, Continue): self.procesar_continue()
 
     def procesar_etiqueta(self, sentencia):
         id = sentencia.id
@@ -955,6 +956,10 @@ class Traducir(threading.Thread):
         self.cuadruplos.add(cuadruplo)
         self.etiquetas[self.etiqueta].append(cuadruplo)
 
+    def procesar_continue(self):
+        new_cuadruplo = Cuadruplo("goto",self.ambientes_continue[len(self.ambientes_continue)-1], "","")
+        self.cuadruplos.add(new_cuadruplo)
+        self.etiquetas[self.etiqueta].append(new_cuadruplo)
 
     def procesar_operacion(self, operacion, ts):
         if isinstance(operacion,OperacionNumero): return self.procesar_valor(operacion, ts)

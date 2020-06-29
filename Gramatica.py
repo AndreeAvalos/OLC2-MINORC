@@ -10,11 +10,9 @@ reservadas = {
     'main': 'MAIN',
     'printf': 'PRINT',
     'struct': 'STRUCT',
-    'auto':'AUTO',
     'break': 'BREAK',
     'for': 'FOR',
     'case': 'CASE',
-    'const':'CONST',
     'continue': 'CONTINUE',
     'default': 'DEFAULT',
     'do':'DO',
@@ -22,10 +20,8 @@ reservadas = {
     'else': 'ELSE',
     'if':'IF',
     'return':'RETURN',
-    'sizeof':'SIZE',
     'switch': 'SWITCH',
     'void':'VOID',
-    'register': 'REGISTER',
     'goto': 'GOTO',
     'scanf': 'SCAN'
 }
@@ -412,6 +408,7 @@ def p_sentencia(p):
                     |   print
                     |   goto
                     |   etiqueta
+                    |   continue
                     |   error PYCOMA
                     |   error LLAVEDER
     '''
@@ -420,6 +417,10 @@ def p_sentencia(p):
 def p_goto(p):
     'goto   :   GOTO ID PYCOMA'
     p[0] = GoTo(p[2], p.lineno(1))
+
+def p_continue(p):
+    'continue   :   CONTINUE PYCOMA'
+    p[0] = Continue(p.lineno(1))
 
 def p_etiqueta(p):
     'etiqueta   :   ID DOSPUNTOS   '

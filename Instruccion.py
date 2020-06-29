@@ -159,6 +159,11 @@ class Case(Instruccion):
         self.operacion = operacion
         self.sentencias = sentencias
         self.line =line
+
+class Continue(Instruccion):
+    def __init__(self, line):
+        self.line =line
+        super().__init__()
         
 class Break(Instruccion):
     def __init__(self, line):
