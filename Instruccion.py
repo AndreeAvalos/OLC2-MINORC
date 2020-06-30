@@ -21,6 +21,14 @@ class DeclaracionesArreglo(Instruccion):
         self.declaraciones = declaraciones
         self.line =line
 
+class DeclaracionCasteo(Instruccion):
+    def __init__(self,tipo, id, cast, operacion,line):
+        self.tipo = tipo
+        self.id = id
+        self.casteo = cast
+        self.operacion = operacion
+        self.line = line
+
 class Arreglo(Instruccion):
     def __init__(self, id, dimensiones, valores, line):
         self.id = id 
@@ -73,6 +81,12 @@ class Llamada(Instruccion):
         self.params = params
         self.line =line
 
+class AsignacionCasteo(Instruccion):
+    def __init__(self, id, cast, operacion, line):
+        self.id = id
+        self.casteo = cast
+        self.operacion = operacion
+        self.line = line
 
 class AsignacionSimple(Instruccion):
     def __init__(self, id, valor, line):
@@ -117,10 +131,11 @@ class AsignacionArregloStruct(Instruccion):
 
 
 class If(Instruccion):
-    def __init__(self,s_if, s_elif, s_else ):
+    def __init__(self,s_if, s_elif, s_else, line ):
         self.s_if = s_if #sentencia if
         self.s_elif = s_elif #lista de sentencias if
         self.s_else = s_else #sentencia else
+        self.line = line
     
 class SentenciaIf(Instruccion):
     def __init__(self, condicion, sentencias, line):
@@ -267,10 +282,12 @@ class OperacionCaracter(Instruccion):
         self.line = line
         self.column = column
 
-class OperacionTernaria(Instruccion):
-    def __init__(self, condicion, op1, op2, line, column):
+class Ternario(Instruccion):
+    def __init__(self,tipo,id, condicion, op1, op2, line):
+        self.tipo = tipo 
+        self.id = id
         self.condicion =condicion
         self.op1 = op1
         self.op2 = op2
         self.line = line
-        self.column = column
+

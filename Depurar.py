@@ -7,8 +7,9 @@ from augus.Ejecutar import Ejecutor
 import augus.GramaticaA as GramaticaA
 from augus.Recolectar import Recolectar
 from augus.TablaSimbolosA import TablaSimbolosA as TSA
+from PyQt5.Qsci import QsciScintilla
 
-class Traducir(threading.Thread):
+class Depurar(threading.Thread):
     def __init__(self, group=None, target=None, name=None,
                  args=(), kwargs=None, *, daemon=None):
         super().__init__(group=group, target=target, name=name,
@@ -19,6 +20,7 @@ class Traducir(threading.Thread):
         self.C3D = args[2]
         self.consola = args[3]
         self.GTS = args[4]
+        self.editor = args[5]
         self.ts = TablaSimbolos()
         self.index_temporal = 0
         self.cuadruplos = Cuadruplos()
@@ -47,13 +49,22 @@ class Traducir(threading.Thread):
         self.index_dec = 0
         self.codigo = ""
         self.in_console = None
+        #banderas para los diferentes tipos de debugger
+        self.step = False
+        self.continuar = False
+        self.detener = False
+        self.primer_break_activo = False
 
 
     def run(self):
         self.recolectar(self.ast)
         self.procesar()
+        self.editor.SendScintilla(QsciScintilla.SCI_GOTOLINE,0)
+        self.editor.setSelection(0,0,0,0)
         self.imprimirCuadruplos()
         self.imprimir3D()
+        if self.detener:
+            return
         self.analizar()
 
     def analizar(self):
@@ -72,6 +83,7 @@ class Traducir(threading.Thread):
 
     def imprimir3D(self):
         self.codigo = ""
+        self.C3D.clear()
         for etiqueta in self.etiquetas:
             self.C3D.addItem(etiqueta+":")
             self.codigo += etiqueta+":\n" 
@@ -135,9 +147,9 @@ class Traducir(threading.Thread):
             elif isinstance(instruccion, DeclaracionesArreglo): self.procesar_declaracionesArreglo(instruccion, self.ts)
             elif isinstance(instruccion, AsignacionArreglo): self.procesar_asignacionArreglo(instruccion, self.ts)
             elif isinstance(instruccion, DeclaracionesArregloStruct): self.procesar_declaracionesArregloStruct(instruccion,self.ts)
-            elif isinstance(instruccion, AsignacionArregloStruct): self.procesar_asginacionArregloStruct(instruccion, self.ts)
+            elif isinstance(instruccion, AsignacionArregloStruct): self.procesar_asginacionArregloStruct(instruccion, self.ts)            
             elif isinstance(instruccion, AsignacionCasteo): self.procesar_asignacionCasteo(instruccion, self.ts)
-            elif isinstance(instruccion, DeclaracionCasteo): self.procesar_declaracionCasteo(instruccion, self.ts)            
+            elif isinstance(instruccion, DeclaracionCasteo): self.procesar_declaracionCasteo(instruccion, self.ts)                        
             elif isinstance(instruccion, Ternario):   self.procesar_ternario(instruccion, self.ts)
             
     def recolectar_main(self, instruccion):
@@ -519,6 +531,7 @@ class Traducir(threading.Thread):
 
         self.ambientes.pop()
         self.ambientes_continue.pop()
+
 
     def procesar_doWhile(self,sentencia, ts):
         new_do = self.generarDO()
@@ -916,83 +929,6 @@ class Traducir(threading.Thread):
             self.cuadruplos.add(new_cuadruplo)
             self.etiquetas[self.etiqueta].append(new_cuadruplo)
     
-    def procesar_sentencias(self,sentencias, ts, call = False):
-        local = None
-        if call:
-            local = ts
-        else:
-            local = TablaSimbolos()
-            local.setPadre(ts)
-
-        for sentencia in sentencias:
-            if isinstance(sentencia,Declaraciones): self.procesar_declaraciones(sentencia,local)
-            elif isinstance(sentencia,DeclaracionesStruct): self.procesar_declaracionesStruct(sentencia,local)
-            elif isinstance(sentencia,AsignacionSimple): self.procesar_asignacionSimple(sentencia,local)
-            elif isinstance(sentencia,AsignacionCompuesta): self.procesar_asignacionCompuesta(sentencia,local)
-            elif isinstance(sentencia, AsignacionStruct): self.procesar_asignacionStruct(sentencia, local)
-            elif isinstance(sentencia,  If):  self.procesar_if(sentencia,local)
-            elif isinstance(sentencia,While): self.procesar_while(sentencia,local)
-            elif isinstance(sentencia,DoWhile): self.procesar_doWhile(sentencia,local)
-            elif isinstance(sentencia, Llamada): self.procesar_llamada(sentencia,local)
-            elif isinstance(sentencia, Switch): self.procesar_switch(sentencia,local)
-            elif isinstance(sentencia, Break):  self.procesar_break()
-            elif isinstance(sentencia, Return): self.procesar_return(sentencia,ts)
-            elif isinstance(sentencia, Print): self.procesar_print(sentencia,local)
-            elif isinstance(sentencia, DeclaracionesArreglo): self.procesar_declaracionesArreglo(sentencia, local)
-            elif isinstance(sentencia, AsignacionArreglo): self.procesar_asignacionArreglo(sentencia, local)
-            elif isinstance(sentencia, DeclaracionesArregloStruct): self.procesar_declaracionesArregloStruct(sentencia, local)
-            elif isinstance(sentencia, AsignacionArregloStruct): self.procesar_asginacionArregloStruct(sentencia, local)
-            elif isinstance(sentencia, For): self.procesar_for(sentencia, local)
-            elif isinstance(sentencia, GoTo): self.procesar_goto(sentencia)
-            elif isinstance(sentencia, Etiqueta): self.procesar_etiqueta(sentencia)
-            elif isinstance(sentencia, Continue): self.procesar_continue()
-            elif isinstance(sentencia, AsignacionCasteo): self.procesar_asignacionCasteo(sentencia,local)
-            elif isinstance(sentencia, DeclaracionCasteo): self.procesar_declaracionCasteo(sentencia, local)
-            elif isinstance(sentencia, Ternario):   self.procesar_ternario(sentencia, local)
-
-    def procesar_etiqueta(self, sentencia):
-        id = sentencia.id
-        self.etiquetas[id] = []
-        self.etiqueta = id
-    
-    def procesar_goto(self, sentencia):
-        cuadruplo = Cuadruplo("goto",sentencia.id,"","")
-        self.cuadruplos.add(cuadruplo)
-        self.etiquetas[self.etiqueta].append(cuadruplo)
-
-    def procesar_continue(self):
-        new_cuadruplo = Cuadruplo("goto",self.ambientes_continue[len(self.ambientes_continue)-1], "","")
-        self.cuadruplos.add(new_cuadruplo)
-        self.etiquetas[self.etiqueta].append(new_cuadruplo)
-
-    def procesar_asignacionCasteo(self,instruccion,ts):
-        id = instruccion.id
-        if ts.existePadre(id):
-            temp = ts.getValor(id, ts).temporal
-            last_temp = self.procesar_operacion(instruccion.operacion,ts)
-            new_cuadruplo = None
-            if instruccion.casteo == "double":
-                new_cuadruplo = Cuadruplo("=", "(float)",last_temp,temp)
-            else:
-                new_cuadruplo = Cuadruplo("=", "({0})".format(instruccion.casteo),last_temp,temp)
-            self.cuadruplos.add(new_cuadruplo)
-            self.etiquetas[self.etiqueta].append(new_cuadruplo)
-
-    def procesar_declaracionCasteo(self, instruccion, ts):
-        id = instruccion.id
-        if not ts.existe(id):
-            last_temp = self.procesar_operacion(instruccion.operacion,ts)
-            temp = self.generarTemporal()
-            new_simbol = Simbolo(id, temp, instruccion.line, 0)
-            ts.add(new_simbol)
-            new_cuadruplo = None
-            if instruccion.casteo == "double":
-                new_cuadruplo = Cuadruplo("=", "(float)",last_temp,temp)
-            else:
-                new_cuadruplo = Cuadruplo("=", "({0})".format(instruccion.casteo),last_temp,temp)
-            self.cuadruplos.add(new_cuadruplo)
-            self.etiquetas[self.etiqueta].append(new_cuadruplo)
-
     def procesar_ternario(self, instruccion, ts):
         new_end = self.generarEND()
         #si es una declaracion
@@ -1073,6 +1009,109 @@ class Traducir(threading.Thread):
                 #creamos la etiqueta end
                 self.etiqueta = new_end
                 self.etiquetas[self.etiqueta] = []
+    
+    def procesar_sentencias(self,sentencias, ts, call = False):
+        local = None
+        if call:
+            local = ts
+        else:
+            local = TablaSimbolos()
+            local.setPadre(ts)
+
+        for sentencia in sentencias:
+            line = sentencia.line
+            if self.detener:
+                return
+
+            self.step = False
+            
+            if self.editor.markersAtLine(line) == 1 or self.primer_break_activo:
+                #preguntamos si quiere ir paso a paso o continuar
+                if self.continuar:
+                    self.primer_break_activo = False
+                    self.continuar = False
+                else:
+                    self.primer_break_activo = True
+                    while self.step !=True:
+                        time.sleep(0.3)
+                        self.editor.SendScintilla(QsciScintilla.SCI_GOTOLINE,line)
+                        self.editor.setSelection(line,0,line,1)
+                        if self.detener:
+                            return
+
+
+
+            if isinstance(sentencia,Declaraciones): self.procesar_declaraciones(sentencia,local)
+            elif isinstance(sentencia,DeclaracionesStruct): self.procesar_declaracionesStruct(sentencia,local)
+            elif isinstance(sentencia,AsignacionSimple): self.procesar_asignacionSimple(sentencia,local)
+            elif isinstance(sentencia,AsignacionCompuesta): self.procesar_asignacionCompuesta(sentencia,local)
+            elif isinstance(sentencia, AsignacionStruct): self.procesar_asignacionStruct(sentencia, local)
+            elif isinstance(sentencia,  If):  self.procesar_if(sentencia,local)
+            elif isinstance(sentencia,While): self.procesar_while(sentencia,local)
+            elif isinstance(sentencia,DoWhile): self.procesar_doWhile(sentencia,local)
+            elif isinstance(sentencia, Llamada): self.procesar_llamada(sentencia,local)
+            elif isinstance(sentencia, Switch): self.procesar_switch(sentencia,local)
+            elif isinstance(sentencia, Break):  self.procesar_break()
+            elif isinstance(sentencia, Return): self.procesar_return(sentencia,ts)
+            elif isinstance(sentencia, Print): self.procesar_print(sentencia,local)
+            elif isinstance(sentencia, DeclaracionesArreglo): self.procesar_declaracionesArreglo(sentencia, local)
+            elif isinstance(sentencia, AsignacionArreglo): self.procesar_asignacionArreglo(sentencia, local)
+            elif isinstance(sentencia, DeclaracionesArregloStruct): self.procesar_declaracionesArregloStruct(sentencia, local)
+            elif isinstance(sentencia, AsignacionArregloStruct): self.procesar_asginacionArregloStruct(sentencia, local)
+            elif isinstance(sentencia, For): self.procesar_for(sentencia, local)
+            elif isinstance(sentencia, GoTo): self.procesar_goto(sentencia)
+            elif isinstance(sentencia, Etiqueta): self.procesar_etiqueta(sentencia)
+            elif isinstance(sentencia, Continue): self.procesar_continue()
+            elif isinstance(sentencia, AsignacionCasteo): self.procesar_asignacionCasteo(sentencia,local)
+            elif isinstance(sentencia, DeclaracionCasteo): self.procesar_declaracionCasteo(sentencia, local)            
+            elif isinstance(sentencia, Ternario):   self.procesar_ternario(sentencia, local)
+            self.imprimirCuadruplos()
+            self.imprimir3D()
+
+    def procesar_etiqueta(self, sentencia):
+        id = sentencia.id
+        self.etiquetas[id] = []
+        self.etiqueta = id
+    
+    def procesar_goto(self, sentencia):
+        cuadruplo = Cuadruplo("goto",sentencia.id,"","")
+        self.cuadruplos.add(cuadruplo)
+        self.etiquetas[self.etiqueta].append(cuadruplo)
+
+    def procesar_continue(self):
+        new_cuadruplo = Cuadruplo("goto",self.ambientes_continue[len(self.ambientes_continue)-1], "","")
+        self.cuadruplos.add(new_cuadruplo)
+        self.etiquetas[self.etiqueta].append(new_cuadruplo)
+
+    def procesar_asignacionCasteo(self,instruccion,ts):
+        id = instruccion.id
+        if ts.existePadre(id):
+            temp = ts.getValor(id, ts).temporal
+            last_temp = self.procesar_operacion(instruccion.operacion,ts)
+            new_cuadruplo = None
+            if instruccion.casteo == "double":
+                new_cuadruplo = Cuadruplo("=", "(float)",last_temp,temp)
+            else:
+                new_cuadruplo = Cuadruplo("=", "({0})".format(instruccion.casteo),last_temp,temp)
+            self.cuadruplos.add(new_cuadruplo)
+            self.etiquetas[self.etiqueta].append(new_cuadruplo)
+
+    
+    def procesar_declaracionCasteo(self, instruccion, ts):
+        id = instruccion.id
+        if not ts.existe(id):
+            last_temp = self.procesar_operacion(instruccion.operacion,ts)
+            temp = self.generarTemporal()
+            new_simbol = Simbolo(id, temp, instruccion.line, 0)
+            ts.add(new_simbol)
+            new_cuadruplo = None
+            if instruccion.casteo == "double":
+                new_cuadruplo = Cuadruplo("=", "(float)",last_temp,temp)
+            else:
+                new_cuadruplo = Cuadruplo("=", "({0})".format(instruccion.casteo),last_temp,temp)
+            self.cuadruplos.add(new_cuadruplo)
+            self.etiquetas[self.etiqueta].append(new_cuadruplo)
+
 
     def procesar_operacion(self, operacion, ts):
         if isinstance(operacion,OperacionNumero): return self.procesar_valor(operacion, ts)
@@ -1086,6 +1125,9 @@ class Traducir(threading.Thread):
         elif isinstance(operacion, Scan): return self.procesar_scan()
         elif isinstance(operacion, OperacionArreglo): return self.procesar_operacionArreglo(operacion, ts)
         elif isinstance(operacion, OperacionArregloStruct): return self.procesar_operacionArregloStruct(operacion, ts)
+        self.imprimir3D()
+        self.imprimirCuadruplos()
+
 
     def procesar_operacinBinaria(self,operacion,ts):
         
@@ -1179,7 +1221,7 @@ class Traducir(threading.Thread):
             new_cuadruplo = Cuadruplo("=", temp, "",new_temp)
             self.cuadruplos.add(new_cuadruplo)
             self.etiquetas[self.etiqueta].append(new_cuadruplo)
-            return new_temp        
+            return new_temp
 
     def procesar_valor(self, expresion, ts):
         if isinstance(expresion,OperacionVariable): 
@@ -1285,3 +1327,6 @@ class Traducir(threading.Thread):
         #aumentamos su contador para que no existan mismos temporales
         self.index_dec += 1
         return salida
+
+    def stop(self):
+        self.detener = True

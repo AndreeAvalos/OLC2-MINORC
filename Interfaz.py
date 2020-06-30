@@ -1,20 +1,18 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import Gramatica
 from Traducir import Traducir
+from Depurar import Depurar
 from PyQt5.Qsci import QsciLexerCPP, QsciScintilla
 traducir = None
 class PlainTextEdit(QtWidgets.QTextEdit):
     
 
     def keyPressEvent(self, event):
-        #global in_console
         global traducir
         if event.key() == QtCore.Qt.Key_Return:
             salida = self.toPlainText()
             lineas = salida.split("\n")
-            #print (lineas[len(lineas)-1])
             traducir.setParams(lineas[len(lineas)-1],True)
-            #in_console.setState(True)
 
         super(PlainTextEdit, self).keyPressEvent(event)
 
@@ -24,7 +22,8 @@ class Interfaz(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1349, 806)
-        self.traducir = None
+        self.mw = MainWindow
+        self.puntos_break = []
 
         palette = QtGui.QPalette()
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
@@ -81,24 +80,35 @@ class Interfaz(object):
         self.ejecutar.setObjectName("ejecutar")
         self.ejecutar.clicked.connect(self.Traducir_Alto_nivel)
         #end ejecutar
+        #inico depurar
         self.depurar = QtWidgets.QPushButton(self.centralwidget)
         self.depurar.setGeometry(QtCore.QRect(310, 0, 71, 61))
         self.depurar.setObjectName("depurar")
+        self.depurar.clicked.connect(self.Depurar_Alto_nivel)
+        #end depurar
         self.parar = QtWidgets.QPushButton(self.centralwidget)
         self.parar.setGeometry(QtCore.QRect(380, 0, 71, 61))
         self.parar.setObjectName("parar")
+        self.parar.clicked.connect(self.detenerEjecucion)
+        #end parar
         self.step_step = QtWidgets.QPushButton(self.centralwidget)
         self.step_step.setGeometry(QtCore.QRect(450, 0, 71, 61))
         self.step_step.setObjectName("step_step")
+        self.step_step.clicked.connect(self.setStep)
+        #end step
         self.continuar = QtWidgets.QPushButton(self.centralwidget)
         self.continuar.setGeometry(QtCore.QRect(520, 0, 71, 61))
         self.continuar.setObjectName("continuar")
+        self.continuar.clicked.connect(self.setContinuar)
+        #end continuar
         self.tema = QtWidgets.QPushButton(self.centralwidget)
         self.tema.setGeometry(QtCore.QRect(640, 0, 71, 61))
         self.tema.setObjectName("tema")
+        self.tema.clicked.connect(self.setLines)
         self.lineas = QtWidgets.QPushButton(self.centralwidget)
         self.lineas.setGeometry(QtCore.QRect(710, 0, 71, 61))
         self.lineas.setObjectName("lineas")
+        self.lineas.clicked.connect(self.ms_help)
         self.editor = QtWidgets.QTabWidget(self.centralwidget)
         self.editor.setGeometry(QtCore.QRect(10, 80, 661, 421))
         self.editor.setObjectName("editor")
@@ -112,9 +122,9 @@ class Interfaz(object):
         self.plainTextEdit.setObjectName("plainTextEdit")
         self.plainTextEdit.setFont(self.__myFont)
         self.plainTextEdit.setMarginType(0, QsciScintilla.NumberMargin)
-        self.plainTextEdit.setMarginWidth(0,"000")
+        self.plainTextEdit.setMarginWidth(0,"00")
         self.plainTextEdit.setMarginsForegroundColor(QtGui.QColor("#0C4B72"))
-        self.plainTextEdit.markerDefine(QsciScintilla.Rectangle, 0)
+        self.plainTextEdit.markerDefine(QsciScintilla.RightArrow, 0)
         self.plainTextEdit.setMarginSensitivity(0,True)
         self.plainTextEdit.setWrapMode(QsciScintilla.WrapWord)
         self.plainTextEdit.setWrapVisualFlags(QsciScintilla.WrapFlagByText)
@@ -362,10 +372,12 @@ class Interfaz(object):
     def on_margin_clicked(self, nmargin, nline, modifiers):
         if self.plainTextEdit.markersAtLine(nline) != 0:
             self.plainTextEdit.markerDelete(nline, 0)
+            
         else:
             self.plainTextEdit.markerAdd(nline, 0)
+            
 
-    def Traducir_Alto_nivel(self):
+    def Depurar_Alto_nivel(self):
         global traducir
         self.consola.clear()
         tab = self.editor.widget(self.editor.currentIndex())
@@ -373,8 +385,63 @@ class Interfaz(object):
         codigo = items[0].text()
         ast = Gramatica.parse(codigo)
         self.codigo_3d.clear()
+        self.tabla_cuadruplos.clear()
+        traducir = Depurar(args=(ast,self.tabla_cuadruplos, self.codigo_3d,self.consola,self.tabla_simbolos,items[0]),daemon=True)
+        traducir.start()
+
+    
+    def ms_help(self):
+        msg = QtWidgets.QMessageBox(self.mw)
+        msg.setIcon(QtWidgets.QMessageBox.Information)
+        msg.setText("201408580")
+        msg.setInformativeText("Andree Avalos")
+        msg.setWindowTitle("Help")
+        msg.setDetailedText("Proyecto realizado para Compiladores 2 \n https://github.com/AndreeAvalos/OLC2-MINORC")
+        msg.exec_()
+
+    def setStep(self):
+        try:
+            traducir.step = True
+        except:
+            em = QtWidgets.QErrorMessage(self.mw)
+            em.setWindowTitle("ERROR!!!")
+            em.showMessage("No se ha iniciado ningun proceso")
+        
+    def setContinuar(self):
+        try:
+            traducir.continuar = True
+            traducir.step = True
+        except:
+            em = QtWidgets.QErrorMessage(self.mw)
+            em.setWindowTitle("ERROR!!!")
+            em.showMessage("No se ha iniciado ningun proceso")
+    
+    def detenerEjecucion(self):
+        try:
+            traducir.stop()
+        except:
+            em = QtWidgets.QErrorMessage(self.mw)
+            em.setWindowTitle("ERROR!!!")
+            em.showMessage("No se ha iniciado ningun proceso")
+
+    def setLines(self):
+        tab = self.editor.widget(self.editor.currentIndex())
+        items = tab.children()
+        self.plainTextEdit.setMarginType(0, QsciScintilla.NumberMargin)
+
+
+    def Traducir_Alto_nivel(self):
+        global traducir
+        self.consola.clear()
+        self.tabla_cuadruplos.clear()
+        tab = self.editor.widget(self.editor.currentIndex())
+        items = tab.children()
+        codigo = items[0].text()
+        ast = Gramatica.parse(codigo)
+        self.codigo_3d.clear()
         traducir = Traducir(args=(ast,self.tabla_cuadruplos, self.codigo_3d,self.consola,self.tabla_simbolos),daemon=True)
         traducir.start()
+        
 
 
     def retranslateUi(self, MainWindow):
@@ -388,8 +455,8 @@ class Interfaz(object):
         self.parar.setText(_translate("MainWindow", "Parar"))
         self.step_step.setText(_translate("MainWindow", "->"))
         self.continuar.setText(_translate("MainWindow", "|>"))
-        self.tema.setText(_translate("MainWindow", "Tema"))
-        self.lineas.setText(_translate("MainWindow", "Lineas"))
+        self.tema.setText(_translate("MainWindow", "Lineas"))
+        self.lineas.setText(_translate("MainWindow", "Help"))
         self.editor.setTabText(self.editor.indexOf(self.tab), _translate("MainWindow", "Tab 1"))
         self.label.setText(_translate("MainWindow", "Codigo AUGUS"))
         self.label_2.setText(_translate("MainWindow", "Codigo AUGUS optimizado"))

@@ -1,6 +1,7 @@
 import ply.yacc as yacc
 import ply.lex as lex
 from Instruccion import *
+from augus.GramaticaA import NodoG, NodoGramatical
 
 reservadas = {
     'int': 'INTEGER',
@@ -222,12 +223,12 @@ def p_instruccion(p):
     '''instruccion  :   declaracion
                     |   declaracion_arreglo
                     |   declaracion_arreglo_struct
+                    |   declaracion_casteo
                     |   asignacion
                     |   main
                     |   metodo
                     |   funcion
                     |   struct
-                    |   declaracion_casteo
                     |   error PYCOMA
                     |   error LLAVEDER
     '''
@@ -235,7 +236,7 @@ def p_instruccion(p):
 
 def p_declaracion(p):
     'declaracion    :   tipo declaraciones PYCOMA'
-    p[0] = Declaraciones(p[1],p[2],p.lineno(3))
+
 
 def p_declaraciones(p):
     'declaraciones  :   declaraciones COMA decla'
@@ -248,19 +249,15 @@ def p_declaraciones2(p):
 
 def p_declaracion2(p):
     'decla          :   ID IGUAL operacion'
-    p[0] = Declaracion(p[1],p[3],p.lineno(1),find_column(p.slice[1]))
 
 def p_declaracion3(p):
     'decla          :   ID '
-    p[0] = Declaracion(p[1],None,p.lineno(1),find_column(p.slice[1]))
-
+    
 def p_declaracion4(p):
     'declaracion    :   STRUCT ID declaraciones PYCOMA'
-    p[0] = DeclaracionesStruct(p[2],p[3], p.lineno(1))
 
 def p_declaracion_arreglo(p):
     'declaracion_arreglo    :   tipo declaraciones_arreglos PYCOMA'
-    p[0] = DeclaracionesArreglo(p[1],p[2], p.lineno(3))
 
 def p_declaracion_arreglos2(p):
     'declaraciones_arreglos :   declaraciones_arreglos COMA decla_arreglo'
@@ -273,11 +270,9 @@ def p_declaracion_arreglos3(p):
 
 def p_declaracion_arreglo2(p):
     'decla_arreglo  :   ID corchetes IGUAL LLAVEIZQ llaves LLAVEDER'
-    p[0] = Arreglo(p[1],p[2],p[5], p.lineno(1))
 
 def p_declaracion_arreglo3(p):
     'decla_arreglo  :   ID corchetes'
-    p[0] = Arreglo(p[1],None,None, p.lineno(1))
 
 def p_corchetes(p):
     'corchetes  :   corchetes corchete'
@@ -311,15 +306,6 @@ def p_llaves2(p):
 
 def p_declaracion_arreglo_struct(p):
     'declaracion_arreglo_struct : STRUCT ID arreglo_structs PYCOMA'
-    p[0] = DeclaracionesArregloStruct(p[2],p[3], p.lineno(1))
-
-def p_declaracion_casteo(p):
-    'declaracion_casteo :   tipo ID IGUAL PARIZQ primitivo PARDER operacion PYCOMA'
-    p[0] = DeclaracionCasteo(p[1],p[2],p[5],p[7],p.lineno(2))
-    
-def p_asignacion_ternaria2(p):
-    'declaracion    : tipo  ID IGUAL operacion INTERROGACION operacion DOSPUNTOS operacion PYCOMA'
-    p[0] = Ternario(p[1],p[2],p[4],p[6],p[8],p.lineno(2))
 
 def p_arreglo_structs(p):
     'arreglo_structs    :   arreglo_structs COMA arreglo_struct'
@@ -332,20 +318,16 @@ def p_arreglo_structs2(p):
 
 def p_arreglo_structs3(p):
     'arreglo_struct     :   ID corchetes'
-    p[0] = ArregloStruct(p[1],p[2], p.lineno(1))
 
 def p_main(p):
     'main   :   INTEGER MAIN PARIZQ PARDER LLAVEIZQ sentencias LLAVEDER'
-    p[0] = Main(p[6], p.lineno(1))
 
 #falta implementar si el metodo es puntero o doble puntero
 def p_metodo(p):
     'metodo :   VOID ID PARIZQ PARDER LLAVEIZQ sentencias LLAVEDER'
-    p[0] = Metodo(p[2],None,p[6], p.lineno(1))
 
 def p_metodo_params(p):
     'metodo :   VOID ID PARIZQ parametros PARDER LLAVEIZQ sentencias LLAVEDER'
-    p[0] = Metodo(p[2],p[4],p[7], p.lineno(1))
 
 def p_parametros(p):
     'parametros :   parametros COMA parametro '
@@ -364,15 +346,12 @@ def p_parametro(p):
 
 def p_funcion(p):
     'funcion :   tipo ID PARIZQ PARDER LLAVEIZQ sentencias LLAVEDER'
-    p[0] = Funcion(p[1],p[2],None,p[6], p.lineno(2))
 
 def p_funcion_params(p):
     'funcion :   tipo ID PARIZQ parametros PARDER LLAVEIZQ sentencias LLAVEDER'
-    p[0] = Funcion(p[1],p[2],p[4],p[7], p.lineno(2))
 
 def p_struct(p):
     'struct :   STRUCT ID LLAVEIZQ sdeclaraciones LLAVEDER  PYCOMA'
-    p[0] = Struct(p[2],p[4], p.lineno(1))
 
 def p_sdeclaraciones(p):
     'sdeclaraciones : sdeclaraciones sdeclaracion'
@@ -426,24 +405,18 @@ def p_sentencia(p):
 
 def p_goto(p):
     'goto   :   GOTO ID PYCOMA'
-    p[0] = GoTo(p[2], p.lineno(1))
 
 def p_continue(p):
     'continue   :   CONTINUE PYCOMA'
-    p[0] = Continue(p.lineno(1))
-
 def p_etiqueta(p):
     'etiqueta   :   ID DOSPUNTOS   '
-    p[0] = Etiqueta(p[1], p.lineno(1))
 
 #aqui puede venir tambien tipos de arreglos, structs pero para comenzar una asignacion simple
 def p_asignacion(p):
     'asignacion     :   ID IGUAL operacion PYCOMA'
-    p[0] = AsignacionSimple(p[1], p[3], p.lineno(1))
 
 def p_asignacion2(p):
     'asignacion     :   ID tipo_asignacion PYCOMA'
-    p[0] = AsignacionCompuesta(p[1],p[2].operadorIzq,p[2].operacion, p.lineno(1))
 
 def p_tipo_asignacion(p):
     '''tipo_asignacion  :      MASIGUAL        operacion
@@ -457,18 +430,14 @@ def p_tipo_asignacion(p):
                         |      ORIGUAL         operacion
                         |      XORIGUAL        operacion
     '''
-    p[0] = OperacionAsignacion(p[1],p[2])
 
 def p_tipo_asignacion2(p):
     '''tipo_asignacion  :      INCREMENTO
                         |      DECREMENTO
     '''
-    p[0] = OperacionAsignacion(p[1],None)
 
 def p_asignacion3(p):
     'asignacion :   ID PUNTO atributos IGUAL operacion PYCOMA'
-    p[0] = AsignacionStruct(p[1],p[3],p[5], p.lineno(1))
-
 
 def p_atributos(p):
     'atributos  : atributos PUNTO atributo'
@@ -481,45 +450,34 @@ def p_atributos2(p):
 
 def p_atributo(p):
     'atributo   :   ID'
-    p[0] = Atributo(p[1], None, p.lineno(1))
 
 def p_atributo2(p):
     'atributo   :   ID corchetes'
-    p[0] = Atributo(p[1],p[2], p.lineno(1))
 
 def p_asignacion4(p):
     'asignacion :   ID corchetes IGUAL operacion PYCOMA'
-    p[0] = AsignacionArreglo(p[1],p[2],p[4], p.lineno(1))
 
 def p_asignacion5(p):
     'asignacion :   ID corchetes PUNTO atributos IGUAL operacion PYCOMA'
-    p[0] = AsignacionArregloStruct(p[1],p[2],p[4],p[6], p.lineno(1))
 
-def p_asignacion_casteo(p):
-    'asignacion :   ID IGUAL PARIZQ primitivo PARDER operacion PYCOMA'
-    p[0] = AsignacionCasteo(p[1],p[4],p[6],p.lineno(1))
-
-def p_asignacion_ternaria(p):
-    'asignacion   :   ID IGUAL operacion INTERROGACION operacion DOSPUNTOS operacion PYCOMA'
-    p[0] = Ternario(None,p[1],p[3],p[5],p[7],p.lineno(1))
 
 #if simple
 def p_if(p):
     'if :   IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER'
     s_if = SentenciaIf(p[3],p[6], p.lineno(1))
-    p[0] = If(s_if,None,None, p.lineno(1))
+    p[0] = If(s_if,None,None)
 #if con else simple
 def p_if_else(p):
     'if :   IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER ELSE LLAVEIZQ sentencias LLAVEDER'
     s_if = SentenciaIf(p[3],p[6], p.lineno(1))
     s_else = SentenciaIf(None,p[10], p.lineno(8))
-    p[0] = If(s_if,None,s_else, p.lineno(1))
+    p[0] = If(s_if,None,s_else)
 #if con else if pero sin else
 def p_if_elseif(p):
     'if :   IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER else_if'
     s_if = SentenciaIf(p[3],p[6], p.lineno(1))
     s_elif = p[8]
-    p[0] = If(s_if,s_elif,None, p.lineno(1))
+    p[0] = If(s_if,s_elif,None)
 
 #listados de if
 def p_else_if(p):
@@ -534,7 +492,6 @@ def p_else_if2(p):
 #sentencia else if
 def p_elif(p):
     'elif   :   ELSE IF PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER '
-    p[0] = SentenciaIf(p[4],p[7], p.lineno(1))
 
 #if con elseif y else
 def p_if_elseif_else(p):
@@ -542,47 +499,37 @@ def p_if_elseif_else(p):
     s_if = SentenciaIf(p[3],p[6], p.lineno(1))
     s_elif = p[8]
     s_else = SentenciaIf(None,p[11], p.lineno(9))
-    p[0] = If(s_if,s_elif,s_else, p.lineno(1))
+    p[0] = If(s_if,s_elif,s_else)
 
 def p_while(p):
     'while  :   WHILE PARIZQ operacion PARDER LLAVEIZQ sentencias LLAVEDER'
-    p[0]= While(p[3],p[6], p.lineno(1))
 
 def p_do_while(p):
     'do_while   :   DO LLAVEIZQ sentencias LLAVEDER WHILE PARIZQ operacion PARDER PYCOMA '
-    p[0] = DoWhile(p[7],p[3], p.lineno(1))
 
 def p_for(p):
     'for    :   FOR PARIZQ inicializacion PYCOMA operacion PYCOMA incremento PARDER LLAVEIZQ sentencias LLAVEDER'
-    p[0] = For(p[3],p[5],p[7],p[10], p.lineno(1))
     
 def p_inicializacion(p):
     'inicializacion :   tipo ID IGUAL operacion '
-    p[0] = Declaracion(p[2],p[4],p.lineno(2),0 )
 
 def p_inicializacion2(p):
     'inicializacion :   ID IGUAL operacion '
-    p[0] = AsignacionSimple(p[1],p[3], p.lineno(1))
 
 def p_incremento3(p):
     'incremento :   ID tipo_asignacion '
-    p[0] = AsignacionCompuesta(p[1],p[2].operadorIzq,p[2].operacion, p.lineno(1))
 
 def p_callMetodo(p):
     'callMetodo :   ID PARIZQ PARDER PYCOMA'
-    p[0] = Llamada(p[1],None, p.lineno(1))
 
 def p_callMetodo2(p):
     'callMetodo :   ID PARIZQ valores PARDER PYCOMA'
-    p[0] = Llamada(p[1],p[3], p.lineno(1))
 
 def p_print(p):
     'print  :   PRINT PARIZQ CADENA COMA valores PARDER PYCOMA'
-    p[0] = Print(p[3],p[5], p.lineno(1))
 
 def p_print2(p):
     'print  :   PRINT PARIZQ CADENA PARDER PYCOMA'
-    p[0] = Print(p[3],None, p.lineno(1))
 
 def p_valores(p):
     'valores    :   valores COMA operacion'
@@ -595,7 +542,6 @@ def p_valores2(p):
 
 def p_switch(p):
     'switch :   SWITCH PARIZQ operacion PARDER LLAVEIZQ casos LLAVEDER'
-    p[0]= Switch(p[3],p[6], p.lineno(1))
 
 def p_casos(p):
     'casos  :   casos caso'
@@ -608,25 +554,20 @@ def p_casos2(p):
 
 def p_caso(p):
     'caso   :   CASE operacion DOSPUNTOS sentencias'
-    p[0] = Case(p[2],p[4], p.lineno(1))
 
 def p_caso2(p):
     'caso   :   DEFAULT DOSPUNTOS sentencias'
-    p[0] = Case(None, p[3], p.lineno(1))
 
 def p_break(p):
     'break  :   BREAK PYCOMA'
-    p[0] = Break(p.lineno(1))
 
 def p_return(p):
     'return :   RETURN operacion PYCOMA'
-    p[0] = Return(p[2], p.lineno(1))
 
 def p_operaciones_logicas(p):
     '''operacion    :   operacion   AND             operacion
                     |   operacion   OR              operacion 
     '''
-    p[0] = OperacionBinaria(p[1],p[3],p[2],p.lineno(2),find_column(p.slice[2]))
 
 def p_operaciones_relacionales(p):
     '''operacion    :   operacion   IGUALIGUAL      operacion
@@ -636,7 +577,6 @@ def p_operaciones_relacionales(p):
                     |   operacion   MAYORIGUAL      operacion
                     |   operacion   MENORIGUAL      operacion
     '''
-    p[0] = OperacionBinaria(p[1],p[3],p[2],p.lineno(2),find_column(p.slice[2]))
 
 def p_operaciones_bit(p):
     '''operacion    :   operacion   ANDBIT          operacion
@@ -645,7 +585,6 @@ def p_operaciones_bit(p):
                     |   operacion   SHIFTIZQ        operacion
                     |   operacion   SHIFTDER        operacion
     '''
-    p[0] = OperacionBinaria(p[1],p[3],p[2],p.lineno(2),find_column(p.slice[2]))
 
 def p_operaciones_numerica(p):
     '''operacion    :   operacion   MAS             operacion
@@ -654,7 +593,9 @@ def p_operaciones_numerica(p):
                     |   operacion   DIVISION        operacion
                     |   operacion   MODULAR         operacion
     '''
-    p[0] = OperacionBinaria(p[1],p[3],p[2],p.lineno(2),find_column(p.slice[2]))
+
+def p_operaciones_ternario(p):
+    'operacion      :   operacion   INTERROGACION operacion DOSPUNTOS operacion'
 
 def p_operaciones_unarias(p):
     '''operacion    :   MENOS   operacion   %prec UMENOS
@@ -662,45 +603,32 @@ def p_operaciones_unarias(p):
                     |   NOTBIT  operacion   %prec UMENOS
                     |   ANDBIT  operacion   %prec UMENOS
     '''
-    p[0] = OperacionUnaria(p[2], p[1],p.lineno(1),find_column(p.slice[1]))
 
 def p_operaciones_funcion(p):
     'operacion :   ID PARIZQ PARDER'
-    p[0] = OperacionLlamada(p[1],None)
 
 def p_operaciones_funcion2(p):
     'operacion :   ID PARIZQ valores PARDER'
-    p[0] = OperacionLlamada(p[1],p[3])
 
 def p_operacion_struct(p):
     'operacion  : ID PUNTO atributos'
-    p[0] = OperacionStruct(p[1],p[3])
 
 def p_operacion_scan(p):
     'operacion  :   SCAN PARIZQ PARDER'
-    p[0] = Scan()
 
 def p_operacion_arreglo(p):
     'operacion  :   ID corchetes'
-    p[0] = OperacionArreglo(p[1],p[2])
 
 def p_operacion_arreglo_struct(p):
     'operacion  :   ID corchetes PUNTO atributos'
-    p[0] = OperacionArregloStruct(p[1],p[2],p[4])
+
 def p_operaciones_parentesis(p):
     'operacion  :   PARIZQ operacion PARDER'
     p[0] = p[2]
 
+
 def p_operaciones_valor(p):
     'operacion      :   valor'
-    p[0] = p[1]
-
-def p_primitivo(p):
-    '''primitivo    :   INTEGER
-                    |   FLOAT
-                    |   DOUBLE
-                    |   CHAR
-    '''
     p[0] = p[1]
 
 def p_tipo(p):
@@ -710,24 +638,41 @@ def p_tipo(p):
                     |   CHAR
                     |   ID
     '''
+
+def p_asignacion_casteo(p):
+    'asignacion :   ID IGUAL PARIZQ primitivo PARDER operacion PYCOMA'
+
+
+def p_declaracion_casteo(p):
+    'declaracion_casteo :   tipo ID IGUAL PARIZQ primitivo PARDER operacion PYCOMA'
+    
+
+def p_primitivo(p):
+    '''primitivo    :   INTEGER
+                    |   FLOAT
+                    |   DOUBLE
+                    |   CHAR
+    '''
     p[0] = p[1]
+
+def p_asignacion_ternaria(p):
+    'asignacion   :   ID IGUAL operacion INTERROGACION operacion DOSPUNTOS operacion PYCOMA'
+   
+
+def p_asignacion_ternaria2(p):
+    'declaracion    : tipo  ID IGUAL operacion INTERROGACION operacion DOSPUNTOS operacion PYCOMA'
 
 
 def p_valor_integer(p):
     'valor          : ENTERO'
-    p[0] = OperacionNumero(p[1],p.lineno(1),find_column(p.slice[1]))
 def p_valor_identificador(p):
     'valor          : ID'
-    p[0] = OperacionVariable(p[1],p.lineno(1),find_column(p.slice[1]))
 def p_valor_double(p):
     'valor          : DECIMAL'
-    p[0] = OperacionNumero(p[1],p.lineno(1),find_column(p.slice[1]))
 def p_valor_char(p):
     'valor          : CARACTER'   
-    p[0] = OperacionCaracter("\'"+p[1]+"\'",p.lineno(1),find_column(p.slice[1]))
 def p_valor_cadena(p):
     'valor          : CADENA'  
-    p[0] = OperacionCadena("\""+p[1]+"\"",p.lineno(1),find_column(p.slice[1])) 
 
 def p_error(p):
     print("Error sintáctico en '%s'" % p.value, str(p.lineno))
