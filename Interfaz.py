@@ -122,7 +122,7 @@ class Interfaz(object):
         self.plainTextEdit.setObjectName("plainTextEdit")
         self.plainTextEdit.setFont(self.__myFont)
         self.plainTextEdit.setMarginType(0, QsciScintilla.NumberMargin)
-        self.plainTextEdit.setMarginWidth(0,"00")
+        self.plainTextEdit.setMarginWidth(0,"00000")
         self.plainTextEdit.setMarginsForegroundColor(QtGui.QColor("#0C4B72"))
         self.plainTextEdit.markerDefine(QsciScintilla.RightArrow, 0)
         self.plainTextEdit.setMarginSensitivity(0,True)

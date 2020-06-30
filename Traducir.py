@@ -487,33 +487,37 @@ class Traducir(threading.Thread):
         self.etiquetas[new_etiqueta] = []
         self.etiqueta = new_etiqueta
 
-
     def procesar_while(self,sentenciaWhile, ts):
         new_etiqueta = self.generarEND()
-
+        new_if = self.generarIF()
         self.ambientes.append(new_etiqueta)
-
-       
 
         new_while = self.generarWHILE()
         self.ambientes_continue.append(new_while)
 
-        new_cuadruplo = Cuadruplo("goto",new_while, "","")
+        new_cuadruplo2 = Cuadruplo("goto",new_while, "","")
         #self.cuadruplos.add(new_cuadruplo)
-        self.etiquetas[self.etiqueta].append(new_cuadruplo)
+        self.etiquetas[self.etiqueta].append(new_cuadruplo2)
         self.etiquetas[new_while] = []
-        old_etiqueta = self.etiqueta
         self.etiqueta = new_while
         last_temp = self.procesar_operacion(sentenciaWhile.condicion,ts)
-        new_temp = self.generarTemporal()
-        new_cuadruplo2 =Cuadruplo("=","!",last_temp,new_temp)
+        #new_temp = self.generarTemporal()
+        #new_cuadruplo2 =Cuadruplo("=","!",last_temp,new_temp)
+        #self.cuadruplos.add(new_cuadruplo2)
+        #self.etiquetas[self.etiqueta].append(new_cuadruplo2)
+        new_cuadruplo2 =Cuadruplo("if",last_temp,"goto",new_if)
         self.cuadruplos.add(new_cuadruplo2)
         self.etiquetas[self.etiqueta].append(new_cuadruplo2)
-        new_cuadruplo2 =Cuadruplo("if",new_temp,"goto",new_etiqueta)
-        self.cuadruplos.add(new_cuadruplo2)
-        self.etiquetas[self.etiqueta].append(new_cuadruplo2)
-        self.procesar_sentencias(sentenciaWhile.sentencias,ts)
+        #agreamos un goto end si no cumple
+        new_cuadruplo = Cuadruplo("goto",new_etiqueta, "","")
+        self.cuadruplos.add(new_cuadruplo)
         self.etiquetas[self.etiqueta].append(new_cuadruplo)
+        self.etiqueta = new_if
+        self.etiquetas[new_if] = []
+        self.procesar_sentencias(sentenciaWhile.sentencias,ts)
+        #agregamos un goto while;
+        self.etiquetas[self.etiqueta].append(new_cuadruplo2)
+
         self.etiquetas[new_etiqueta] = []
         self.etiqueta = new_etiqueta
 
@@ -554,22 +558,14 @@ class Traducir(threading.Thread):
         self.etiqueta = new_while
         #hacemos las operaciones 
         last_temp = self.procesar_operacion(sentencia.condicion,ts)
-        #creamos un temporal
-        new_temp = self.generarTemporal()
-        #negamos el ultimo temporal retornado por la operacion
-        new_cuadruplo2 =Cuadruplo("=","!",last_temp,new_temp)
-        #lo agregamos a nuestros cuadruplos
-        self.cuadruplos.add(new_cuadruplo2)
-        #tambien lo agregamos a nuestra lista de etiquetas
-        self.etiquetas[self.etiqueta].append(new_cuadruplo2)
         #creamos el if para salir del ciclo
-        new_cuadruplo2 =Cuadruplo("if",new_temp,"goto",new_end)
+        new_cuadruplo2 =Cuadruplo("if",last_temp,"goto",new_do)
         #lo agregamos a nuestros cuadruplos
         self.cuadruplos.add(new_cuadruplo2)
         #tambien lo agregamos a nuestra lista de etiquetas
         self.etiquetas[self.etiqueta].append(new_cuadruplo2)
         #ahora creamos el goto para regresar a do
-        new_cuadruplo = Cuadruplo("goto",new_do,"","")
+        new_cuadruplo = Cuadruplo("goto",new_end,"","")
         #lo agregamos el cuadruplo a su etiqueta
         self.etiquetas[self.etiqueta].append(new_cuadruplo)
         self.etiqueta = new_end
