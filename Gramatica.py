@@ -382,6 +382,27 @@ def p_funcion_params(p):
     'funcion :   tipo ID PARIZQ parametros PARDER LLAVEIZQ sentencias LLAVEDER'
     p[0] = Funcion(p[1],p[2],p[4],p[7], p.lineno(2))
 
+def p_funcion_arreglo(p):
+    'funcion :   tipo corchetes_vacios ID  PARIZQ PARDER LLAVEIZQ sentencias LLAVEDER'
+    p[0] = Funcion(p[1],p[3],None,p[7], p.lineno(3))
+
+def p_funcion_arreglo_params(p):
+    'funcion :   tipo corchetes_vacios ID  PARIZQ parametros PARDER LLAVEIZQ sentencias LLAVEDER'
+    p[0] = Funcion(p[1],p[3],p[5],p[8], p.lineno(3))
+
+def p_corchetes_vacios(p):
+    'corchetes_vacios   :   corchetes_vacios corchete_vacio'
+    p[1].append(p[2])
+    p[0] = p[1]
+
+def p_corchetes_vacios2(p):
+    'corchetes_vacios   :   corchete_vacio'
+    p[0] = [p[1]]
+
+def p_corchete_vacio(p):
+    'corchete_vacio :   CORIZQ CORDER'
+    p[0] = [1]
+
 def p_struct(p):
     'struct :   STRUCT ID LLAVEIZQ sdeclaraciones LLAVEDER  PYCOMA'
     p[0] = Struct(p[2],p[4], p.lineno(1))
@@ -745,7 +766,7 @@ def p_error(p):
     agregarError("Sintactico","Sintaxis no reconocida \"{0}\"".format(p.value),p.lineno+1, find_column(p))
 
 input = ""
-parser = yacc.yacc(write_tables=False)
+parser = yacc.yacc(write_tables=True)
 def parse(inpu) :
     global input
     global lst_errores

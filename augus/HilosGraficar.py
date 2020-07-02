@@ -223,7 +223,16 @@ class Graficar3D(threading.Thread):
     def imprimir3D(self,cuadruplo):
         if isinstance(cuadruplo, Cuadruplo):
             if cuadruplo.op == "if":
-                return " if({0}) goto {1};".format(cuadruplo.arg1, cuadruplo.result)
+                op = cuadruplo.arg1
+                if isinstance(op,str):
+                    if "<" in op:
+                        op = op.replace('<',"&lt; ")
+                    elif ">" in op:
+                        op = op.replace('>',"&gt; ")
+                    elif "&" in op: 
+                        op = op.replace('&',"&amp; ")
+
+                return " if({0}) goto {1};".format(op, cuadruplo.result)
             elif cuadruplo.op == "goto":
                 return " goto {0};".format(cuadruplo.arg1)
             elif cuadruplo.op == "print":
@@ -232,16 +241,21 @@ class Graficar3D(threading.Thread):
                 return" exit;"
             elif cuadruplo.op != "=":
                 op = cuadruplo.op
-                if "<" in op:
-                    op = op.replace('<',"&lt; ")
-                elif ">" in op:
-                    op = op.replace('>',"&gt; ")
-                elif "&" in op: 
-                    op = op.replace('&',"&amp; ")
+                if isinstance(op,str):
+                    if "<" in op:
+                        op = op.replace('<',"&lt; ")
+                    elif ">" in op:
+                        op = op.replace('>',"&gt; ")
+                    elif "&" in op: 
+                        op = op.replace('&',"&amp; ")
 
                 return " {0}={1} {2} {3};".format(cuadruplo.result,cuadruplo.arg1, op, cuadruplo.arg2)
             else:
-                return " {0}={1}{2};".format(cuadruplo.result,cuadruplo.arg1,cuadruplo.arg2)
+                op = cuadruplo.arg1
+                if isinstance(op, str):
+                    if "&" in op: 
+                        op = op.replace('&',"&amp; ")
+                return " {0}={1}{2};".format(cuadruplo.result,op,cuadruplo.arg2)
         else:
             return cuadruplo
 

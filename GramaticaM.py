@@ -260,7 +260,7 @@ def p_declaracion2(p):
 
 def p_declaracion_string(p):
     'decla          :   ID CORIZQ CORDER IGUAL CADENA'
-    p[0] = NodoG(getIndex(), "=", [NodoG(getIndex(),p[1],None),p[5]])
+    p[0] = NodoG(getIndex(), "=", [NodoG(getIndex(),p[1],None),NodoG(getIndex(), p[5],None)])
 
 def p_declaracion3(p):
     'decla          :   ID '
@@ -379,6 +379,23 @@ def p_funcion(p):
 def p_funcion_params(p):
     'funcion :   tipo ID PARIZQ parametros PARDER LLAVEIZQ sentencias LLAVEDER'
     p[0] = NodoG(getIndex(), p[2], [p[7]])  
+
+def p_funcion_arreglo(p):
+    'funcion :   tipo corchetes_vacios ID  PARIZQ PARDER LLAVEIZQ sentencias LLAVEDER'
+    p[0] = NodoG(getIndex(), p[3], [p[7]])  
+
+def p_funcion_arreglo_params(p):
+    'funcion :   tipo corchetes_vacios ID  PARIZQ parametros PARDER LLAVEIZQ sentencias LLAVEDER'
+    p[0] = NodoG(getIndex(), p[3], [p[8]])  
+
+def p_corchetes_vacios(p):
+    'corchetes_vacios   :   corchetes_vacios corchete_vacio'
+
+def p_corchetes_vacios2(p):
+    'corchetes_vacios   :   corchete_vacio'
+
+def p_corchete_vacio(p):
+    'corchete_vacio :   CORIZQ CORDER'
 
 def p_struct(p):
     'struct :   STRUCT ID LLAVEIZQ sdeclaraciones LLAVEDER  PYCOMA'
@@ -760,7 +777,7 @@ def p_error(p):
 
 
 input = ""
-parser = yacc.yacc(write_tables=False)
+parser = yacc.yacc(write_tables=True)
 def parse(inpu) :
     global input
     lexer = lex.lex()

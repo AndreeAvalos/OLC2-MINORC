@@ -20,6 +20,7 @@ class Optimizacion(threading.Thread):
         self.codigo = ""
         self.optimizadas = []
         self.in_console = None
+        self.eliminadas = {}
 
     def setParams(self, linea, estado):
         self.in_console.setParams(linea,estado)
@@ -70,6 +71,32 @@ class Optimizacion(threading.Thread):
         self.etiquetas = self.regla5()
         'regla 2'
         self.etiquetas = self.regla2()
+        'regla 6'
+        self.etiquetas = self.regla6()
+        'regla 7'
+        self.etiquetas = self.regla7()
+        'regla 8'
+        self.etiquetas = self.regla8()
+        'regla 9'
+        self.etiquetas = self.regla9()
+        'regla 10'
+        self.etiquetas = self.regla10()
+        'regla 11'
+        self.etiquetas = self.regla11()
+        'regla 12'
+        self.etiquetas = self.regla12()
+        'regla 13'
+        self.etiquetas = self.regla13()
+        'regla 14'
+        self.etiquetas = self.regla14()
+        'regla 15'
+        self.etiquetas = self.regla15()
+        'regla 16'
+        self.etiquetas = self.regla16()
+        'regla 17'
+        self.etiquetas = self.regla17()
+        'regla 18'
+        self.etiquetas = self.regla18()
         #-----------------------#
         self.imprimir3D()
         self.analizar()
@@ -182,7 +209,7 @@ class Optimizacion(threading.Thread):
                     #self.add(cuadruplo,3)
         #una vez terminado el proceso seguimos a eliminar las etiquetas que cambiaron
         for etiqueta in eliminadas:
-            self.add(etiqueta + ":",6)
+            self.add(etiqueta + ":",3)
             del etiquetas[etiqueta]
         #recorremos la lista de nuevo en busca de if y goto que puedan tener las etiquetas
         for salto in eliminadas:
@@ -290,5 +317,265 @@ class Optimizacion(threading.Thread):
                 etiquetas[etiqueta].append(self.etiquetas[etiqueta][i])
         return etiquetas
     
+    def regla6(self):
+        ''
+        etiquetas = {}
+        eliminadas = self.eliminadas
+        for etiqueta in self.etiquetas:
+            etiquetas[etiqueta] = []
+            for cuadruplo in self.etiquetas[etiqueta]:
+                if cuadruplo.op == "goto":
+                    ''
+                    etiqueta_goto = cuadruplo.arg1
+                    if 1 == len(self.etiquetas[etiqueta_goto]):
+                        ''
+                        goto_temp = self.etiquetas[etiqueta_goto][0]
+                        if goto_temp.op == "goto":
+                            ''
+                            self.add(cuadruplo,6)
+                            new_salto = Cuadruplo("goto",goto_temp.arg1, "","")
+                            etiquetas[etiqueta].append(new_salto)
+                            eliminadas[etiqueta_goto] = goto_temp.arg1
+                            continue
+                etiquetas[etiqueta].append(cuadruplo)
+        self.eliminadas = eliminadas
+
+        return etiquetas
+
+    def regla7(self):
+        ''
+        etiquetas = {}
+        eliminadas = self.eliminadas
+        for etiqueta in self.etiquetas:
+            etiquetas[etiqueta] = []
+            for cuadruplo in self.etiquetas[etiqueta]:
+                if cuadruplo.op == "if":
+                    ''
+                    etiqueta_goto = cuadruplo.result
+                    if 1 == len(self.etiquetas[etiqueta_goto]):
+                        ''
+                        goto_temp = self.etiquetas[etiqueta_goto][0]
+                        if goto_temp.op == "goto":
+                            ''
+                            self.add(cuadruplo,7)
+                            new_salto = Cuadruplo("if",cuadruplo.arg1,cuadruplo.arg2,goto_temp.arg1)
+                            etiquetas[etiqueta].append(new_salto)
+                            eliminadas[etiqueta_goto] = goto_temp.arg1
+                            continue
+                etiquetas[etiqueta].append(cuadruplo)
+        #una vez terminado el proceso seguimos a eliminar las etiquetas que cambiaron
+        for etiqueta in eliminadas:
+            self.add(etiqueta + ":",7)
+            del etiquetas[etiqueta]
+        #recorremos la lista de nuevo en busca de if y goto que puedan tener las etiquetas
+        for salto in eliminadas:
+            for etiqueta in etiquetas:
+                for cuadruplo in etiquetas[etiqueta]:
+                    if cuadruplo.op == "if":
+                        if cuadruplo.result == salto:
+                            cuadruplo.result = eliminadas[salto]
+                    elif cuadruplo.op == "goto":
+                        if cuadruplo.arg1 == salto:
+                            cuadruplo.arg1 = eliminadas[salto]
+        
+        return etiquetas
+
+    def regla8(self):
+        etiquetas = {}
+        for etiqueta in self.etiquetas:
+            etiquetas[etiqueta] = []
+            for cuadruplo in self.etiquetas[etiqueta]:
+                ''
+                if cuadruplo.op =="+":
+                    if cuadruplo.arg1 == cuadruplo.result:
+                        if str(cuadruplo.arg2) == "0":
+                            self.add(cuadruplo,8)
+                            continue
+                    elif cuadruplo.arg2 == cuadruplo.result:
+                        if str(cuadruplo.arg1) == "0":
+                            self.add(cuadruplo,8)
+                            continue
+                etiquetas[etiqueta].append(cuadruplo)
+                
+        return etiquetas
+
+    def regla9(self):
+        etiquetas = {}
+        for etiqueta in self.etiquetas:
+            etiquetas[etiqueta] = []
+            for cuadruplo in self.etiquetas[etiqueta]:
+                ''
+                if cuadruplo.op =="-":
+                    if cuadruplo.arg1 == cuadruplo.result:
+                        if str(cuadruplo.arg2) == "0":
+                            self.add(cuadruplo,9)
+                            continue
+                etiquetas[etiqueta].append(cuadruplo)
+                
+        return etiquetas
+    
+    def regla10(self):
+        etiquetas = {}
+        for etiqueta in self.etiquetas:
+            etiquetas[etiqueta] = []
+            for cuadruplo in self.etiquetas[etiqueta]:
+                ''
+                if cuadruplo.op =="*":
+                    if cuadruplo.arg1 == cuadruplo.result:
+                        if str(cuadruplo.arg2) == "1":
+                            self.add(cuadruplo,10)
+                            continue
+                    elif cuadruplo.arg2 == cuadruplo.result:
+                        if str(cuadruplo.arg1) == "1":
+                            self.add(cuadruplo,10)
+                            continue
+                etiquetas[etiqueta].append(cuadruplo)
+                
+        return etiquetas
+
+    def regla11(self):
+        etiquetas = {}
+        for etiqueta in self.etiquetas:
+            etiquetas[etiqueta] = []
+            for cuadruplo in self.etiquetas[etiqueta]:
+                ''
+                if cuadruplo.op =="/":
+                    if cuadruplo.arg1 == cuadruplo.result:
+                        if str(cuadruplo.arg2) == "1":
+                            self.add(cuadruplo,11)
+                            continue
+                etiquetas[etiqueta].append(cuadruplo)
+                
+        return etiquetas
+
+    def regla12(self):
+        ''
+        etiquetas = {}
+        for etiqueta in self.etiquetas:
+            etiquetas[etiqueta] = []
+            for cuadruplo in self.etiquetas[etiqueta]:
+                ''
+                if cuadruplo.op =="+":
+                    if str(cuadruplo.arg1) == "0":
+                        self.add(cuadruplo,12)
+                        etiquetas[etiqueta].append(Cuadruplo("=",cuadruplo.arg2,"", cuadruplo.result))
+                        continue
+                    if str(cuadruplo.arg2) == "0":
+                        self.add(cuadruplo,12)
+                        etiquetas[etiqueta].append(Cuadruplo("=",cuadruplo.arg1,"", cuadruplo.result))
+                        continue
+                etiquetas[etiqueta].append(cuadruplo)
+                
+        return etiquetas
+
+    def regla13(self):
+        ''
+        etiquetas = {}
+        for etiqueta in self.etiquetas:
+            etiquetas[etiqueta] = []
+            for cuadruplo in self.etiquetas[etiqueta]:
+                ''
+                if cuadruplo.op =="-":
+                    if str(cuadruplo.arg2) == "0":
+                        self.add(cuadruplo,13)
+                        etiquetas[etiqueta].append(Cuadruplo("=",cuadruplo.arg1,"", cuadruplo.result))
+                        continue
+                etiquetas[etiqueta].append(cuadruplo)
+                
+        return etiquetas
+
+    def regla14(self):
+        ''
+        etiquetas = {}
+        for etiqueta in self.etiquetas:
+            etiquetas[etiqueta] = []
+            for cuadruplo in self.etiquetas[etiqueta]:
+                ''
+                if cuadruplo.op =="*":
+                    if str(cuadruplo.arg1) == "1":
+                        self.add(cuadruplo,14)
+                        etiquetas[etiqueta].append(Cuadruplo("=",cuadruplo.arg2,"", cuadruplo.result))
+                        continue
+                    if str(cuadruplo.arg2) == "1":
+                        self.add(cuadruplo,14)
+                        etiquetas[etiqueta].append(Cuadruplo("=",cuadruplo.arg1,"", cuadruplo.result))
+                        continue
+                etiquetas[etiqueta].append(cuadruplo)
+                
+        return etiquetas
+
+    def regla15(self):
+        ''
+        etiquetas = {}
+        for etiqueta in self.etiquetas:
+            etiquetas[etiqueta] = []
+            for cuadruplo in self.etiquetas[etiqueta]:
+                ''
+                if cuadruplo.op =="/":
+                    if str(cuadruplo.arg2) == "1":
+                        self.add(cuadruplo,15)
+                        etiquetas[etiqueta].append(Cuadruplo("=",cuadruplo.arg1,"", cuadruplo.result))
+                        continue
+                etiquetas[etiqueta].append(cuadruplo)
+                
+        return etiquetas
+
+    def regla16(self):
+        ''
+        etiquetas = {}
+        for etiqueta in self.etiquetas:
+            etiquetas[etiqueta] = []
+            for cuadruplo in self.etiquetas[etiqueta]:
+                ''
+                if cuadruplo.op =="*":
+                    if str(cuadruplo.arg1) == "2":
+                        self.add(cuadruplo,16)
+                        etiquetas[etiqueta].append(Cuadruplo("+",cuadruplo.arg2,cuadruplo.arg2, cuadruplo.result))
+                        continue
+                    if str(cuadruplo.arg2) == "2":
+                        self.add(cuadruplo,16)
+                        etiquetas[etiqueta].append(Cuadruplo("+",cuadruplo.arg1,cuadruplo.arg1, cuadruplo.result))
+                        continue
+                etiquetas[etiqueta].append(cuadruplo)
+                
+        return etiquetas
+
+    def regla17(self):
+        ''
+        etiquetas = {}
+        for etiqueta in self.etiquetas:
+            etiquetas[etiqueta] = []
+            for cuadruplo in self.etiquetas[etiqueta]:
+                ''
+                if cuadruplo.op =="*":
+                    if str(cuadruplo.arg1) == "0":
+                        self.add(cuadruplo,17)
+                        etiquetas[etiqueta].append(Cuadruplo("=","0","", cuadruplo.result))
+                        continue
+                    if str(cuadruplo.arg2) == "0":
+                        self.add(cuadruplo,17)
+                        etiquetas[etiqueta].append(Cuadruplo("=","0", "", cuadruplo.result))
+                        continue
+                etiquetas[etiqueta].append(cuadruplo)
+                
+        return etiquetas
+
+    def regla18(self):
+        ''
+        etiquetas = {}
+        for etiqueta in self.etiquetas:
+            etiquetas[etiqueta] = []
+            for cuadruplo in self.etiquetas[etiqueta]:
+                ''
+                if cuadruplo.op =="/":
+                    if str(cuadruplo.arg1) == "0":
+                        self.add(cuadruplo,18)
+                        etiquetas[etiqueta].append(Cuadruplo("=","0","", cuadruplo.result))
+                        continue
+        
+                etiquetas[etiqueta].append(cuadruplo)
+                
+        return etiquetas
+
     def add(self, cuadruplo, regla):
         self.optimizadas.append({"linea":cuadruplo, "regla": regla})

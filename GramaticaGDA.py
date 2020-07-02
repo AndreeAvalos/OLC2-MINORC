@@ -376,6 +376,21 @@ def p_funcion(p):
 def p_funcion_params(p):
     'funcion :   tipo ID PARIZQ parametros PARDER LLAVEIZQ sentencias LLAVEDER'
 
+def p_funcion_arreglo(p):
+    'funcion :   tipo corchetes_vacios ID PARIZQ PARDER LLAVEIZQ sentencias LLAVEDER'
+
+def p_funcion_arreglo_params(p):
+    'funcion :   tipo corchetes_vacios ID  PARIZQ parametros PARDER LLAVEIZQ sentencias LLAVEDER'
+
+def p_corchetes_vacios(p):
+    'corchetes_vacios   :   corchetes_vacios corchete_vacio'
+
+def p_corchetes_vacios2(p):
+    'corchetes_vacios   :   corchete_vacio'
+
+def p_corchete_vacio(p):
+    'corchete_vacio :   CORIZQ CORDER'
+
 def p_struct(p):
     'struct :   STRUCT ID LLAVEIZQ sdeclaraciones LLAVEDER  PYCOMA'
 
