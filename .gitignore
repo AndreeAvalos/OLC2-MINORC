@@ -11,6 +11,7 @@ prueba.py
 *.png
 *.jpg
 *.dot
+codigo_optimizado.txt
 # C extensions
 *.so
 

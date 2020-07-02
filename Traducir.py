@@ -62,18 +62,16 @@ class Traducir(threading.Thread):
         self.imprimir3D()
         self.in_console = Optimizacion(args=(self.etiquetas,self.C3DO,self.consola, self.GTS),daemon=True)
         self.in_console.start()
-        #self.analizar()
+        self.analizar()
 
     def analizar(self):
-        ast2 = GramaticaA.parse(self.codigo)
-        ast3 = ast2.instruccion
-        ts = TSA()
-        recolector = Recolectar(ast3,ts,[])
-        recolector.procesar()
-        self.in_console = Ejecutor(args=(ast3,ts,[],"",self.consola, self.GTS),daemon=True)
-        #self.in_console.start()
-        #print(self.codigo)
-    
+        try:
+            file = open("codigo_optimizado.txt", "w")
+            file.write(self.codigo)
+            file.close()
+        except:
+            ''
+
     def add_token(self, id, temporal, linea):
         self.pila_ts.append({"id":id, "valor":temporal, "ambito":self.ambito_ejecucion,"linea":linea})
 
@@ -87,23 +85,23 @@ class Traducir(threading.Thread):
             self.codigo += etiqueta+":\n" 
             for cuadruplo in self.etiquetas[etiqueta]:
                 if cuadruplo.op == "if":
-                    self.C3D.addItem(" if({0}) goto {1};".format(cuadruplo.arg1, cuadruplo.result))
-                    self.codigo+=" if({0}) goto {1};".format(cuadruplo.arg1, cuadruplo.result)
+                    self.C3D.addItem("  if({0}) goto {1};".format(cuadruplo.arg1, cuadruplo.result))
+                    self.codigo+="  if({0}) goto {1};".format(cuadruplo.arg1, cuadruplo.result)
                 elif cuadruplo.op == "goto":
-                    self.C3D.addItem(" goto {0};".format(cuadruplo.arg1))
-                    self.codigo+=" goto {0};".format(cuadruplo.arg1)
+                    self.C3D.addItem("  goto {0};".format(cuadruplo.arg1))
+                    self.codigo+="  goto {0};".format(cuadruplo.arg1)
                 elif cuadruplo.op == "print":
                     self.C3D.addItem("  print({0});".format(cuadruplo.arg1))
-                    self.codigo+=" print({0});".format(cuadruplo.arg1)
+                    self.codigo+="  print({0});".format(cuadruplo.arg1)
                 elif cuadruplo.op == "exit":
                     self.C3D.addItem("  exit;")
                     self.codigo+=" exit;"
                 elif cuadruplo.op != "=":
-                    self.C3D.addItem(" {0}={1} {2} {3};".format(cuadruplo.result,cuadruplo.arg1, cuadruplo.op, cuadruplo.arg2))
-                    self.codigo+= " {0}={1} {2} {3};".format(cuadruplo.result,cuadruplo.arg1, cuadruplo.op, cuadruplo.arg2)
+                    self.C3D.addItem("  {0}={1} {2} {3};".format(cuadruplo.result,cuadruplo.arg1, cuadruplo.op, cuadruplo.arg2))
+                    self.codigo+="  {0}={1} {2} {3};".format(cuadruplo.result,cuadruplo.arg1, cuadruplo.op, cuadruplo.arg2)
                 else:
-                    self.C3D.addItem(" {0}={1}{2};".format(cuadruplo.result,cuadruplo.arg1,cuadruplo.arg2))
-                    self.codigo+=" {0}={1}{2};".format(cuadruplo.result,cuadruplo.arg1,cuadruplo.arg2)
+                    self.C3D.addItem("  {0}={1}{2};".format(cuadruplo.result,cuadruplo.arg1,cuadruplo.arg2))
+                    self.codigo+="  {0}={1}{2};".format(cuadruplo.result,cuadruplo.arg1,cuadruplo.arg2)
                 self.codigo+="\n"
             self.C3D.addItem("")
             self.codigo+="\n"

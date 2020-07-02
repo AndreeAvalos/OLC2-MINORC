@@ -296,10 +296,11 @@ class Ejecutor(threading.Thread):
             while contador <100:
                 time.sleep(0.4)
                 if self.leido:
-                    if re.match(entero,self.entrada):
-                        self.ts.set(id,int(self.entrada))
-                    elif re.match(decimal,self.entrada):
+                    
+                    if re.match(decimal,self.entrada):
                         self.ts.set(id,float(self.entrada))
+                    elif re.match(entero,self.entrada):
+                        self.ts.set(id,int(self.entrada))
                     elif re.match(string,self.entrada):
                         arbol = ArbolCaracteres(self.entrada)
                         self.ts.set(id,arbol)

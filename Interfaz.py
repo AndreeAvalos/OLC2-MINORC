@@ -6,7 +6,12 @@ from Traducir import Traducir
 from Depurar import Depurar
 from PyQt5.Qsci import QsciLexerCPP, QsciScintilla
 from augus.HilosGraficar import *
+from augus.Recolectar import Recolectar
+from augus.Ejecutar import Ejecutor
+import augus.GramaticaA as GramaticaA
+from augus.TablaSimbolosA import TablaSimbolosA as TSA
 from PyQt5.QtWidgets import QInputDialog, QLineEdit,QMainWindow
+from Visor import Visor
 traducir = None
 class PlainTextEdit(QtWidgets.QTextEdit):
     
@@ -321,12 +326,19 @@ class Interfaz(object):
         MainWindow.setMenuBar(self.menubar)
         self.actionEjecutar = QtWidgets.QAction(MainWindow)
         self.actionEjecutar.setObjectName("actionEjecutar")
+        self.actionEjecutar.triggered.connect(self.ejecutar_optimizado)
         self.actionDebug = QtWidgets.QAction(MainWindow)
         self.actionDebug.setObjectName("actionDebug")
         self.actionArbol_Ascendente = QtWidgets.QAction(MainWindow)
         self.actionArbol_Ascendente.setObjectName("actionArbol_Ascendente")
+        ############
+        self.actionArbol_Ascendente.triggered.connect(self.show_ast)
+        ############
         self.actionDGA = QtWidgets.QAction(MainWindow)
         self.actionDGA.setObjectName("actionDGA")
+        ############
+        self.actionDGA.triggered.connect(self.show_dga)
+        ############
         self.actionAbrir = QtWidgets.QAction(MainWindow)
         self.actionAbrir.setObjectName("actionAbrir")
         self.actionAbrir.triggered.connect(self.abrir_archivo)
@@ -340,10 +352,19 @@ class Interfaz(object):
         self.actionReemplazar.setObjectName("actionReemplazar")
         self.actionTabla_de_Simbolos = QtWidgets.QAction(MainWindow)
         self.actionTabla_de_Simbolos.setObjectName("actionTabla_de_Simbolos")
+        ############
+        self.actionTabla_de_Simbolos.triggered.connect(self.show_TS)
+        ############
         self.actionErrores_Lexicos_y_Sintacticos = QtWidgets.QAction(MainWindow)
         self.actionErrores_Lexicos_y_Sintacticos.setObjectName("actionErrores_Lexicos_y_Sintacticos")
+        ############
+        self.actionErrores_Lexicos_y_Sintacticos.triggered.connect(self.show_errores)
+        ############
         self.actionReporte_Gramatical = QtWidgets.QAction(MainWindow)
         self.actionReporte_Gramatical.setObjectName("actionReporte_Gramatical")
+        ############
+        self.actionReporte_Gramatical.triggered.connect(self.show_RO)
+        ############
         self.actionLexicos_y_Sintacticos = QtWidgets.QAction(MainWindow)
         self.actionLexicos_y_Sintacticos.setObjectName("actionLexicos_y_Sintacticos")
         self.actionSemanticos = QtWidgets.QAction(MainWindow)
@@ -354,6 +375,7 @@ class Interfaz(object):
         self.actionArbol.setObjectName("actionArbol")
         self.actionGramatical = QtWidgets.QAction(MainWindow)
         self.actionGramatical.setObjectName("actionGramatical")
+        self.actionGramatical.triggered.connect(self.show_RG)
         self.menuFile.addAction(self.actionAbrir)
         self.menuFile.addAction(self.actionGuardar)
         self.menuFile.addAction(self.actionGuardar_como)
@@ -370,7 +392,7 @@ class Interfaz(object):
         self.menuAUGUS.addAction(self.actionSemanticos)
         self.menuAUGUS.addAction(self.actionTabla_de_simbolos)
         self.menuAUGUS.addAction(self.actionArbol)
-        self.menuAUGUS.addAction(self.actionGramatical)
+        self.menuReporte.addAction(self.actionGramatical)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuReporte.menuAction())
         self.menubar.addAction(self.menuRun.menuAction())
@@ -392,20 +414,35 @@ class Interfaz(object):
             
         else:
             items[0].markerAdd(nline, 0)
-            
-
+    
     def Depurar_Alto_nivel(self):
         global traducir
-        self.consola.clear()
-        tab = self.editor.widget(self.editor.currentIndex())
-        items = tab.children()
-        codigo = items[0].text()
-        ast = Gramatica.parse(codigo)
-        self.codigo_3d.clear()
-        self.codigo_3d_optimizado.clear()
-        #self.tabla_cuadruplos.clear()
-        traducir = Depurar(args=(ast,self.tabla_cuadruplos, self.codigo_3d,self.consola,self.tabla_simbolos,items[0],self.codigo_3d_optimizado),daemon=True)
-        traducir.start()
+        try:
+            self.consola.clear()
+            
+            tab = self.editor.widget(self.editor.currentIndex())
+            items = tab.children()
+            codigo = items[0].text()
+            ast = Gramatica.parse(codigo)
+            lst_errores = Gramatica.lst_errores
+            errores = GraficarError(args=(lst_errores,"Errores"),daemon = True)
+            errores.start()
+            gda = GramaticaGDA.parse(codigo)
+            nodo = GramaticaM.parse(codigo)
+            g_ast = GraficarArbol(args=(nodo,"AST"),daemon = True)
+            g_ast.start()
+            g_gda = GraficarGDA(args=(gda,"GDA"),daemon=True)
+            g_gda.start()
+
+
+        
+            self.codigo_3d.clear()
+            self.codigo_3d_optimizado.clear()
+            #self.tabla_cuadruplos.clear()
+            traducir = Depurar(args=(ast,self.tabla_cuadruplos, self.codigo_3d,self.consola,self.tabla_simbolos,items[0],self.codigo_3d_optimizado),daemon=True)
+            traducir.start()
+        except:
+            print("ERROR EN DEPURACION")
 
     
     def ms_help(self):
@@ -443,33 +480,33 @@ class Interfaz(object):
             em.showMessage("No se ha iniciado ningun proceso")
 
     def setLines(self):
-        tab = self.editor.widget(self.editor.currentIndex())
-        items = tab.children()
-        self.plainTextEdit.setMarginType(0, QsciScintilla.NumberMargin)
-
+        'cambiar color ide'
 
     def Traducir_Alto_nivel(self):
         global traducir
-        self.consola.clear()
-        #self.tabla_cuadruplos.clear()
-        tab = self.editor.widget(self.editor.currentIndex())
-        items = tab.children()
-        codigo = items[0].text()
-        ast = Gramatica.parse(codigo)
-        lst_errores = Gramatica.lst_errores
-        errores = GraficarError(args=(lst_errores,"Errores"),daemon = True)
-        errores.start()
-        gda = GramaticaGDA.parse(codigo)
-        nodo = GramaticaM.parse(codigo)
-        g_ast = GraficarArbol(args=(nodo,"AST"),daemon = True)
-        g_ast.start()
-        g_gda = GraficarGDA(args=(gda,"GDA"),daemon=True)
-        g_gda.start()
-        
-        self.codigo_3d.clear()
-        self.codigo_3d_optimizado.clear()
-        traducir = Traducir(args=(ast,self.tabla_cuadruplos, self.codigo_3d,self.consola,self.tabla_simbolos,self.codigo_3d_optimizado),daemon=True)
-        traducir.start()
+        try:
+            self.consola.clear()
+            #self.tabla_cuadruplos.clear()
+            tab = self.editor.widget(self.editor.currentIndex())
+            items = tab.children()
+            codigo = items[0].text()
+            ast = Gramatica.parse(codigo)
+            lst_errores = Gramatica.lst_errores
+            errores = GraficarError(args=(lst_errores,"Errores"),daemon = True)
+            errores.start()
+            gda = GramaticaGDA.parse(codigo)
+            nodo = GramaticaM.parse(codigo)
+            g_ast = GraficarArbol(args=(nodo,"AST"),daemon = True)
+            g_ast.start()
+            g_gda = GraficarGDA(args=(gda,"GDA"),daemon=True)
+            g_gda.start()
+            
+            self.codigo_3d.clear()
+            self.codigo_3d_optimizado.clear()
+            traducir = Traducir(args=(ast,self.tabla_cuadruplos, self.codigo_3d,self.consola,self.tabla_simbolos,self.codigo_3d_optimizado),daemon=True)
+            traducir.start()
+        except:
+            print("ERROR EN EJECUCION NORMAL")
     
     def abrir_archivo(self):
         try:
@@ -587,6 +624,46 @@ class Interfaz(object):
             em = QtWidgets.QErrorMessage(self.mw)
             em.showMessage("No fue posible guardar {0}".format(name))
     
+    def show_ast(self):
+        self.show("AST")
+    def show_dga(self):
+        self.show("GDA")
+    def show_errores(self):
+        self.show("Errores")
+    def show_RO(self):
+        self.show("reporteOptimizado")
+    def show_TS(self):
+        self.show("tabla_traducir")
+    def show_RG(self):
+        self.show("gramatical")
+
+    def show(self, ruta):
+        try:
+            Dialog = QtWidgets.QDialog(self.mw)
+            ui = Visor()
+            ui.setupUi(Dialog,ruta+".png")
+            Dialog.show()
+        except:
+            em = QtWidgets.QErrorMessage(self.mw)
+            em.setWindowTitle("ERROR!!!")
+            em.showMessage("No se ha generado ningun reporte")
+
+    def ejecutar_optimizado(self):
+        global traducir
+        try:
+            file = open("codigo_optimizado.txt", "r")
+            codigo = file.read()
+            ast2 = GramaticaA.parse(codigo)
+            ast3 = ast2.instruccion
+            ts = TSA()
+            recolector = Recolectar(ast3,ts,[])
+            recolector.procesar()
+            self.consola.clear()
+            traducir = Ejecutor(args=(ast3,ts,[],"",self.consola,self.tabla_simbolos),daemon=True)
+            traducir.start()
+        except:
+            print("ERROR EN EJECUCION DE OPTIMIZADO")
+
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MinorC"))
@@ -625,7 +702,7 @@ class Interfaz(object):
         self.actionEjecutar.setText(_translate("MainWindow", "Ejecutar"))
         self.actionDebug.setText(_translate("MainWindow", "Debug"))
         self.actionArbol_Ascendente.setText(_translate("MainWindow", "Arbol Ascendente"))
-        self.actionDGA.setText(_translate("MainWindow", "DGA"))
+        self.actionDGA.setText(_translate("MainWindow", "GDA"))
         self.actionAbrir.setText(_translate("MainWindow", "Abrir"))
         self.actionGuardar.setText(_translate("MainWindow", "Guardar"))
         self.actionGuardar_como.setText(_translate("MainWindow", "Guardar como.."))
@@ -633,7 +710,7 @@ class Interfaz(object):
         self.actionReemplazar.setText(_translate("MainWindow", "Reemplazar"))
         self.actionTabla_de_Simbolos.setText(_translate("MainWindow", "Tabla de Simbolos"))
         self.actionErrores_Lexicos_y_Sintacticos.setText(_translate("MainWindow", "Errores Lexicos y Sintacticos"))
-        self.actionReporte_Gramatical.setText(_translate("MainWindow", "Reporte Gramatical"))
+        self.actionReporte_Gramatical.setText(_translate("MainWindow", "Reporte Optimizacion"))
         self.actionLexicos_y_Sintacticos.setText(_translate("MainWindow", "Lexicos y Sintacticos"))
         self.actionSemanticos.setText(_translate("MainWindow", "Semanticos"))
         self.actionTabla_de_simbolos.setText(_translate("MainWindow", "Tabla de simbolos"))
