@@ -2,6 +2,7 @@ import ply.yacc as yacc
 import ply.lex as lex
 from Instruccion import *
 
+
 reservadas = {
     'int': 'INTEGER',
     'float': 'FLOAT',
@@ -203,9 +204,27 @@ precedence = (
     ('right','UMENOS'),
     )
 
+
+nodos = {}
+#ejemplo de nodos {"indice: 0, op: a, izq: "", der: "" "}
+index = 0 
+
+def getIndex(op, izq, der):
+    global index 
+    global nodos
+    for key in nodos:
+        if nodos[key]["op"] == op:
+            if nodos[key]["izq"] == izq:
+                if nodos[key]["der"] == der:
+                    return nodos[key]["indice"]
+    index+=1
+    nodos[index] = {"indice": index, "op": op, "izq": izq, "der": der}
+    return index
+
 def p_init(p):
     'init   :   instrucciones'
-    p[0] = p[1]
+    global nodos
+    p[0] = nodos
 
 def p_instrucciones(p):
     'instrucciones  :   instrucciones instruccion'
@@ -569,6 +588,7 @@ def p_operaciones_logicas(p):
     '''operacion    :   operacion   AND             operacion
                     |   operacion   OR              operacion 
     '''
+    p[0] = getIndex(p[2],p[1],p[3])
 
 def p_operaciones_relacionales(p):
     '''operacion    :   operacion   IGUALIGUAL      operacion
@@ -578,6 +598,7 @@ def p_operaciones_relacionales(p):
                     |   operacion   MAYORIGUAL      operacion
                     |   operacion   MENORIGUAL      operacion
     '''
+    p[0] = getIndex(p[2],p[1],p[3])
 
 def p_operaciones_bit(p):
     '''operacion    :   operacion   ANDBIT          operacion
@@ -586,6 +607,7 @@ def p_operaciones_bit(p):
                     |   operacion   SHIFTIZQ        operacion
                     |   operacion   SHIFTDER        operacion
     '''
+    p[0] = getIndex(p[2],p[1],p[3])
 
 def p_operaciones_numerica(p):
     '''operacion    :   operacion   MAS             operacion
@@ -594,6 +616,7 @@ def p_operaciones_numerica(p):
                     |   operacion   DIVISION        operacion
                     |   operacion   MODULAR         operacion
     '''
+    p[0] = getIndex(p[2],p[1],p[3])
 
 def p_operaciones_unarias(p):
     '''operacion    :   MENOS   operacion   %prec UMENOS
@@ -601,30 +624,32 @@ def p_operaciones_unarias(p):
                     |   NOTBIT  operacion   %prec UMENOS
                     |   ANDBIT  operacion   %prec UMENOS
     '''
+    p[0] = getIndex(p[1],p[2],"")
    
 
 def p_operaciones_funcion(p):
     'operacion :   ID PARIZQ PARDER'
-    
+    p[0] = getIndex(p[1],"","")
 
 def p_operaciones_funcion2(p):
     'operacion :   ID PARIZQ valores PARDER'
-    
+    p[0] = getIndex(p[1],"","")
 
 def p_operacion_struct(p):
     'operacion  : ID PUNTO atributos'
-    
+    p[0] = getIndex(p[1],"","")
 
 def p_operacion_scan(p):
     'operacion  :   SCAN PARIZQ PARDER'
-    
+    p[0] = getIndex(p[1],"","")
 
 def p_operacion_arreglo(p):
     'operacion  :   ID corchetes'
-   
+    p[0] = getIndex(p[1],"","")
 
 def p_operacion_arreglo_struct(p):
     'operacion  :   ID corchetes PUNTO atributos'
+    p[0] = getIndex(p[1],"","")
     
 def p_operaciones_parentesis(p):
     'operacion  :   PARIZQ operacion PARDER'
@@ -651,30 +676,32 @@ def p_tipo(p):
     '''
     p[0] = p[1]
 
-
 def p_valor_integer(p):
     'valor          : ENTERO'
+    p[0] = getIndex(p[1],"","")
     
 def p_valor_identificador(p):
     'valor          : ID'
+    p[0] = getIndex(p[1],"","")
     
 def p_valor_double(p):
     'valor          : DECIMAL'
+    p[0] = getIndex(p[1],"","")
    
 def p_valor_char(p):
-    'valor          : CARACTER'   
+    'valor          : CARACTER'
+    p[0] = getIndex(p[1],"","")   
     
 def p_valor_cadena(p):
-    'valor          : CADENA'  
+    'valor          : CADENA'
+    p[0] = getIndex(p[1],"","")
     
 
 def p_error(p):
     ''
 
-
-
 input = ""
-parser = yacc.yacc(write_tables=False)
+parser = yacc.yacc(write_tables=True)
 def parse(inpu) :
     global input
     lexer = lex.lex()

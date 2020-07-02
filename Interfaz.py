@@ -1,8 +1,11 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import Gramatica
+import GramaticaGDA 
 from Traducir import Traducir
 from Depurar import Depurar
 from PyQt5.Qsci import QsciLexerCPP, QsciScintilla
+from augus.HilosGraficar import *
+from PyQt5.QtWidgets import QInputDialog, QLineEdit,QMainWindow
 traducir = None
 class PlainTextEdit(QtWidgets.QTextEdit):
     
@@ -24,6 +27,10 @@ class Interfaz(object):
         MainWindow.resize(1349, 806)
         self.mw = MainWindow
         self.puntos_break = []
+        self.rutaTemp = ""
+        self.pestañas = {}
+        self.nombre = ""
+        self.gc = False
 
         palette = QtGui.QPalette()
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
@@ -68,12 +75,15 @@ class Interfaz(object):
         self.new_file = QtWidgets.QPushButton(self.centralwidget)
         self.new_file.setGeometry(QtCore.QRect(0, 0, 71, 61))
         self.new_file.setObjectName("new_file")
+        self.new_file.clicked.connect(self.agregar_tab)
         self.save_file = QtWidgets.QPushButton(self.centralwidget)
         self.save_file.setGeometry(QtCore.QRect(70, 0, 71, 61))
         self.save_file.setObjectName("save_file")
+        self.save_file.clicked.connect(self.guardar)
         self.save_file_as = QtWidgets.QPushButton(self.centralwidget)
         self.save_file_as.setGeometry(QtCore.QRect(140, 0, 71, 61))
         self.save_file_as.setObjectName("save_file_as")
+        self.save_file_as.clicked.connect(self.guardar_como)
         #boton ejecutar
         self.ejecutar = QtWidgets.QPushButton(self.centralwidget)
         self.ejecutar.setGeometry(QtCore.QRect(240, 0, 71, 61))
@@ -112,6 +122,8 @@ class Interfaz(object):
         self.editor = QtWidgets.QTabWidget(self.centralwidget)
         self.editor.setGeometry(QtCore.QRect(10, 80, 661, 421))
         self.editor.setObjectName("editor")
+        self.editor.setTabsClosable(True)
+        self.editor.tabCloseRequested.connect(self.closeTab)
         self.tab = QtWidgets.QWidget()
         self.tab.setObjectName("tab")
         self.__myFont = QtGui.QFont()
@@ -316,6 +328,7 @@ class Interfaz(object):
         self.actionDGA.setObjectName("actionDGA")
         self.actionAbrir = QtWidgets.QAction(MainWindow)
         self.actionAbrir.setObjectName("actionAbrir")
+        self.actionAbrir.triggered.connect(self.abrir_archivo)
         self.actionGuardar = QtWidgets.QAction(MainWindow)
         self.actionGuardar.setObjectName("actionGuardar")
         self.actionGuardar_como = QtWidgets.QAction(MainWindow)
@@ -370,11 +383,14 @@ class Interfaz(object):
 
 
     def on_margin_clicked(self, nmargin, nline, modifiers):
-        if self.plainTextEdit.markersAtLine(nline) != 0:
-            self.plainTextEdit.markerDelete(nline, 0)
+        tab = self.editor.widget(self.editor.currentIndex())
+        items = tab.children()
+
+        if items[0].markersAtLine(nline) != 0:
+            items[0].markerDelete(nline, 0)
             
         else:
-            self.plainTextEdit.markerAdd(nline, 0)
+            items[0].markerAdd(nline, 0)
             
 
     def Depurar_Alto_nivel(self):
@@ -385,8 +401,9 @@ class Interfaz(object):
         codigo = items[0].text()
         ast = Gramatica.parse(codigo)
         self.codigo_3d.clear()
-        self.tabla_cuadruplos.clear()
-        traducir = Depurar(args=(ast,self.tabla_cuadruplos, self.codigo_3d,self.consola,self.tabla_simbolos,items[0]),daemon=True)
+        self.codigo_3d_optimizado.clear()
+        #self.tabla_cuadruplos.clear()
+        traducir = Depurar(args=(ast,self.tabla_cuadruplos, self.codigo_3d,self.consola,self.tabla_simbolos,items[0],self.codigo_3d_optimizado),daemon=True)
         traducir.start()
 
     
@@ -433,16 +450,135 @@ class Interfaz(object):
     def Traducir_Alto_nivel(self):
         global traducir
         self.consola.clear()
-        self.tabla_cuadruplos.clear()
+        #self.tabla_cuadruplos.clear()
         tab = self.editor.widget(self.editor.currentIndex())
         items = tab.children()
         codigo = items[0].text()
         ast = Gramatica.parse(codigo)
+        gda = GramaticaGDA.parse(codigo)
+        g_gda = GraficarGDA(args=(gda,"GDA"),daemon=True)
+        g_gda.start()
         self.codigo_3d.clear()
-        traducir = Traducir(args=(ast,self.tabla_cuadruplos, self.codigo_3d,self.consola,self.tabla_simbolos),daemon=True)
+        self.codigo_3d_optimizado.clear()
+        traducir = Traducir(args=(ast,self.tabla_cuadruplos, self.codigo_3d,self.consola,self.tabla_simbolos,self.codigo_3d_optimizado),daemon=True)
         traducir.start()
-        
+    
+    def abrir_archivo(self):
+        try:
+            dialog = QtWidgets.QFileDialog().getOpenFileName(None,' Open document',r"C:\Users\\","All Files (*)")
+            ruta = dialog[0]
+            trozos = ruta.split("/")
+            name = trozos[len(trozos)-1]
+            self.pestañas[name] = ruta
+            file = open(ruta,'r')
+            codigo = file.read()
+            tab = QtWidgets.QWidget()
+            area = QsciScintilla(tab)
+            area.setGeometry(QtCore.QRect(10, 10, 631, 371))
+            area.setObjectName("plainTextEdit")
+            area.setFont(self.__myFont)
+            area.setMarginType(0, QsciScintilla.NumberMargin)
+            area.setMarginWidth(0,"00000")
+            area.setMarginsForegroundColor(QtGui.QColor("#0C4B72"))
+            area.markerDefine(QsciScintilla.RightArrow, 0)
+            area.setMarginSensitivity(0,True)
+            area.setWrapMode(QsciScintilla.WrapWord)
+            area.setWrapVisualFlags(QsciScintilla.WrapFlagByText)
+            area.setWrapIndentMode(QsciScintilla.WrapIndentIndented)
+            area.setEolMode(QsciScintilla.EolWindows)
+            area.setEolVisibility(False)
+            area.setWrapVisualFlags(QsciScintilla.WrapFlagByText)
+            area.marginClicked.connect(self.on_margin_clicked)
+            __lexer = QsciLexerCPP(area)
+            area.setLexer(__lexer)
+            self.editor.addTab(tab, "")
+            area.setText(codigo)
+            area.setObjectName("area")
+            self.editor.addTab(tab, name)
+            file.close()
+        except:
+            em = QtWidgets.QErrorMessage(self.mw)
+            em.showMessage("Error al abrir {0}".format(name))
 
+    def agregar_tab(self):
+        text, okPressed = QInputDialog.getText(self.centralwidget, "Nuevo archivo","Nombre:", QLineEdit.Normal, "")
+        if okPressed and text != '':
+
+            tab = QtWidgets.QWidget()
+            area = QsciScintilla(tab)
+            area.setGeometry(QtCore.QRect(10, 10, 631, 371))
+            area.setObjectName("plainTextEdit")
+            area.setFont(self.__myFont)
+            area.setMarginType(0, QsciScintilla.NumberMargin)
+            area.setMarginWidth(0,"00000")
+            area.setMarginsForegroundColor(QtGui.QColor("#0C4B72"))
+            area.markerDefine(QsciScintilla.RightArrow, 0)
+            area.setMarginSensitivity(0,True)
+            area.setWrapMode(QsciScintilla.WrapWord)
+            area.setWrapVisualFlags(QsciScintilla.WrapFlagByText)
+            area.setWrapIndentMode(QsciScintilla.WrapIndentIndented)
+            area.setEolMode(QsciScintilla.EolWindows)
+            area.setEolVisibility(False)
+            area.setWrapVisualFlags(QsciScintilla.WrapFlagByText)
+            area.marginClicked.connect(self.on_margin_clicked)
+            __lexer = QsciLexerCPP(area)
+            area.setLexer(__lexer)
+            self.editor.addTab(tab, "")
+            area.setObjectName("area")
+            self.editor.addTab(tab, text+".mc")         
+
+    def closeTab(self, index):
+        tab = self.editor.widget(index)
+        name = self.editor.tabText(self.editor.currentIndex())
+        tab.deleteLater()
+        self.editor.removeTab(index)
+
+    def guardar(self):
+        indextab = self.editor.tabText(self.editor.currentIndex())
+        if indextab.split(".")[0] in self.pestañas:
+            ruta = self.pestañas[indextab.split(".")[0]]
+            trozos = ruta.split("/")
+            name = indextab
+            try:
+                file = open(ruta,"w")
+                tab = self.editor.widget(self.editor.currentIndex())
+                items = tab.children()
+                codigo = items[0].text()
+                file.write(codigo)
+                file.close()
+            except:
+                em = QtWidgets.QErrorMessage(self.mw)
+                em.showMessage("No fue posible guardar {0}".format(name))
+                
+        else:
+            self.gc = True
+            self.nombre = indextab
+            self.guardar_como()
+            self.pestañas[self.nombre]=self.rutaTemp
+            self.nombre = ""
+            self.gc = False
+
+    def guardar_como(self):
+        
+        if not self.gc:
+            self.nombre, okPressed = QInputDialog.getText(self.centralwidget, "Nuevo archivo","Nombre:", QLineEdit.Normal, "")
+        carpeta = QtWidgets.QFileDialog().getExistingDirectory(self.centralwidget, "Seleccione carpeta")
+        tname = self.nombre.split(".")
+        name = tname[0]
+        ruta = "{0}/{1}.mc".format(carpeta,name)
+        self.nombre=name
+        self.rutaTemp = ruta
+        try:
+            file = open(ruta,"w+")
+            tab = self.editor.widget(self.editor.currentIndex())
+            items = tab.children()
+            codigo = items[0].text()
+            file.write(codigo)
+            file.close()
+        except:
+            em = QtWidgets.QErrorMessage(self.mw)
+            em.showMessage("No fue posible guardar {0}".format(name))
+    
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate

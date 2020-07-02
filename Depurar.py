@@ -7,20 +7,22 @@ from augus.Ejecutar import Ejecutor
 import augus.GramaticaA as GramaticaA
 from augus.Recolectar import Recolectar
 from augus.TablaSimbolosA import TablaSimbolosA as TSA
-from PyQt5.Qsci import QsciScintilla
+from Optimizacion import Optimizacion
+from augus.HilosGraficar import GraficarTS
+from PyQt5.Qsci import QsciLexerCPP, QsciScintilla
 
 class Depurar(threading.Thread):
     def __init__(self, group=None, target=None, name=None,
                  args=(), kwargs=None, *, daemon=None):
         super().__init__(group=group, target=target, name=name,
                          daemon=daemon)
-                         
-        self.ast = args[0]
+        self.ast = args[0]                
         self.TC = args[1]
         self.C3D = args[2]
         self.consola = args[3]
         self.GTS = args[4]
         self.editor = args[5]
+        self.C3DO = args[6]
         self.ts = TablaSimbolos()
         self.index_temporal = 0
         self.cuadruplos = Cuadruplos()
@@ -49,6 +51,7 @@ class Depurar(threading.Thread):
         self.index_dec = 0
         self.codigo = ""
         self.in_console = None
+        self.pila_ts = []
         #banderas para los diferentes tipos de debugger
         self.step = False
         self.continuar = False
@@ -59,13 +62,13 @@ class Depurar(threading.Thread):
     def run(self):
         self.recolectar(self.ast)
         self.procesar()
-        self.editor.SendScintilla(QsciScintilla.SCI_GOTOLINE,0)
-        self.editor.setSelection(0,0,0,0)
+        graficar_ts = GraficarTS(args=(self.pila_ts,"tabla_traducir"))
+        graficar_ts.start()
         self.imprimirCuadruplos()
         self.imprimir3D()
-        if self.detener:
-            return
-        self.analizar()
+        self.in_console = Optimizacion(args=(self.etiquetas,self.C3DO,self.consola, self.GTS),daemon=True)
+        self.in_console.start()
+        #self.analizar()
 
     def analizar(self):
         ast2 = GramaticaA.parse(self.codigo)
@@ -74,16 +77,18 @@ class Depurar(threading.Thread):
         recolector = Recolectar(ast3,ts,[])
         recolector.procesar()
         self.in_console = Ejecutor(args=(ast3,ts,[],"",self.consola, self.GTS),daemon=True)
-        self.in_console.start()
+        #self.in_console.start()
         #print(self.codigo)
     
+    def add_token(self, id, temporal, linea):
+        self.pila_ts.append({"id":id, "valor":temporal, "ambito":self.ambito_ejecucion,"linea":linea})
+
     def setParams(self, linea, estado):
-        self.in_console.setText(linea)
-        self.in_console.setState(estado)
+        self.in_console.setParams(linea,estado)
 
     def imprimir3D(self):
-        self.codigo = ""
         self.C3D.clear()
+        self.codigo = ""
         for etiqueta in self.etiquetas:
             self.C3D.addItem(etiqueta+":")
             self.codigo += etiqueta+":\n" 
@@ -147,9 +152,9 @@ class Depurar(threading.Thread):
             elif isinstance(instruccion, DeclaracionesArreglo): self.procesar_declaracionesArreglo(instruccion, self.ts)
             elif isinstance(instruccion, AsignacionArreglo): self.procesar_asignacionArreglo(instruccion, self.ts)
             elif isinstance(instruccion, DeclaracionesArregloStruct): self.procesar_declaracionesArregloStruct(instruccion,self.ts)
-            elif isinstance(instruccion, AsignacionArregloStruct): self.procesar_asginacionArregloStruct(instruccion, self.ts)            
+            elif isinstance(instruccion, AsignacionArregloStruct): self.procesar_asginacionArregloStruct(instruccion, self.ts)
             elif isinstance(instruccion, AsignacionCasteo): self.procesar_asignacionCasteo(instruccion, self.ts)
-            elif isinstance(instruccion, DeclaracionCasteo): self.procesar_declaracionCasteo(instruccion, self.ts)                        
+            elif isinstance(instruccion, DeclaracionCasteo): self.procesar_declaracionCasteo(instruccion, self.ts)            
             elif isinstance(instruccion, Ternario):   self.procesar_ternario(instruccion, self.ts)
             
     def recolectar_main(self, instruccion):
@@ -178,6 +183,7 @@ class Depurar(threading.Thread):
         if not self.ts.existe(id):
             temp = tablaStruct.generarStruct()
             new_simbol = Simbolo(id, temp, instruccion.line, instruccion.column)
+            self.add_token(id,temp, instruccion.line)
             self.ts.add(new_simbol)
 
     def recolectar_declaracion(self, instruccion):
@@ -187,6 +193,7 @@ class Depurar(threading.Thread):
                 last_temp = self.procesar_operacion(instruccion.valor,self.ts)
                 temp = self.generarHeap()
                 new_simbol = Simbolo(id, temp, instruccion.line, instruccion.column)
+                self.add_token(id,temp, instruccion.line)
                 self.ts.add(new_simbol)
                 new_cuadruplo = Cuadruplo("=", last_temp,"",temp)
                 self.cuadruplos.add(new_cuadruplo)
@@ -194,6 +201,7 @@ class Depurar(threading.Thread):
             else:
                 temp = self.generarHeap()
                 new_simbol = Simbolo(id, temp, instruccion.line, instruccion.column)
+                self.add_token(id,temp, instruccion.line)
                 self.ts.add(new_simbol)
                 new_cuadruplo = Cuadruplo("=", "0","",temp)
                 self.cuadruplos.add(new_cuadruplo)
@@ -243,6 +251,7 @@ class Depurar(threading.Thread):
                 last_temp = self.procesar_operacion(instruccion.valor,ts)
                 temp = self.generarTemporal()
                 new_simbol = Simbolo(id, temp, instruccion.line, instruccion.column)
+                self.add_token(id,temp, instruccion.line)
                 ts.add(new_simbol)
                 new_cuadruplo = Cuadruplo("=", last_temp,"",temp)
                 self.cuadruplos.add(new_cuadruplo)
@@ -251,6 +260,7 @@ class Depurar(threading.Thread):
                 temp = self.generarTemporal()
                 new_simbol = Simbolo(id, temp, instruccion.line, instruccion.column)
                 ts.add(new_simbol)
+                self.add_token(id,temp, instruccion.line)
                 new_cuadruplo = Cuadruplo("=", "0","",temp)
                 self.cuadruplos.add(new_cuadruplo)
                 self.etiquetas[self.etiqueta].append(new_cuadruplo)
@@ -264,6 +274,7 @@ class Depurar(threading.Thread):
         if not ts.existe(id):
             temp = self.generarTemporal()
             new_simbol = Simbolo(id, temp, 0, 0)
+            self.add_token(id,temp, instruccion.line)
             ts.add(new_simbol)
             valores = instruccion.valores
             new_cuadruplo = Cuadruplo("=", "array()","",temp)
@@ -281,6 +292,7 @@ class Depurar(threading.Thread):
         if not ts.existe(id):
             temp = self.generarTemporal()
             new_simbol = Simbolo(id, temp, 0, 0)
+            self.add_token(id,temp, instruccion.line)
             ts.add(new_simbol)
             new_cuadruplo = Cuadruplo("=", "array()","",temp)
             self.cuadruplos.add(new_cuadruplo)
@@ -308,6 +320,7 @@ class Depurar(threading.Thread):
         if not ts.existe(id):
             temp = tablaStruct.generarStruct()
             new_simbol = Simbolo(id, temp, instruccion.line, instruccion.column)
+            self.add_token(id,temp, instruccion.line)
             ts.add(new_simbol)
 
     def procesar_asignacionSimple(self, instruccion, ts):
@@ -490,7 +503,13 @@ class Depurar(threading.Thread):
                 self.etiqueta = old_etiqueta
         #else
         if s_else:
-            self.etiqueta = old_etiqueta
+            new_if = self.generarIF()
+            new_cuadruplo = Cuadruplo("goto",new_if, "","")
+            self.cuadruplos.add(new_cuadruplo)
+            self.etiquetas[old_etiqueta].append(new_cuadruplo)
+
+            self.etiquetas[new_if] = []
+            self.etiqueta = new_if
             self.procesar_sentencias(s_else.sentencias,ts)
         #creamos una nueva etiqueta que nos diriga hacia lo que traia el main
         new_cuadruplo = Cuadruplo("goto",new_etiqueta, "","")
@@ -498,7 +517,6 @@ class Depurar(threading.Thread):
         self.etiquetas[self.etiqueta].append(new_cuadruplo)
         self.etiquetas[new_etiqueta] = []
         self.etiqueta = new_etiqueta
-
 
     def procesar_while(self,sentenciaWhile, ts):
         new_etiqueta = self.generarEND()
@@ -508,9 +526,9 @@ class Depurar(threading.Thread):
         new_while = self.generarWHILE()
         self.ambientes_continue.append(new_while)
 
-        new_cuadruplo2 = Cuadruplo("goto",new_while, "","")
+        new_cuadruplo3 = Cuadruplo("goto",new_while, "","")
         #self.cuadruplos.add(new_cuadruplo)
-        self.etiquetas[self.etiqueta].append(new_cuadruplo2)
+        self.etiquetas[self.etiqueta].append(new_cuadruplo3)
         self.etiquetas[new_while] = []
         self.etiqueta = new_while
         last_temp = self.procesar_operacion(sentenciaWhile.condicion,ts)
@@ -529,7 +547,7 @@ class Depurar(threading.Thread):
         self.etiquetas[new_if] = []
         self.procesar_sentencias(sentenciaWhile.sentencias,ts)
         #agregamos un goto while;
-        self.etiquetas[self.etiqueta].append(new_cuadruplo2)
+        self.etiquetas[self.etiqueta].append(new_cuadruplo3)
 
         self.etiquetas[new_etiqueta] = []
         self.etiqueta = new_etiqueta
@@ -577,6 +595,9 @@ class Depurar(threading.Thread):
         self.cuadruplos.add(new_cuadruplo2)
         #tambien lo agregamos a nuestra lista de etiquetas
         self.etiquetas[self.etiqueta].append(new_cuadruplo2)
+        #agregamos una etiqueta para que no lo optimice
+        new_cuadruplo = Cuadruplo("=","0","",last_temp)
+        self.etiquetas[self.etiqueta].append(new_cuadruplo)
         #ahora creamos el goto para regresar a do
         new_cuadruplo = Cuadruplo("goto",new_end,"","")
         #lo agregamos el cuadruplo a su etiqueta
@@ -800,6 +821,7 @@ class Depurar(threading.Thread):
                 default = caso
         #generar end para salir del ciclo
         new_end = self.generarEtiqueta()
+        self.ambientes.append(new_end)
         #primero, tenemos que tener la condicion
         last_temp = self.procesar_operacion(sentencia.condicion,ts)
         #area para traducir todos los casos
@@ -817,6 +839,8 @@ class Depurar(threading.Thread):
                 index+=1
 
         if default:
+            new_cuadruplo = Cuadruplo("=","0","",last_temp)
+            self.etiquetas[self.etiqueta].append(new_cuadruplo)
             new_cuadruplo = Cuadruplo("goto",new_default, "","")
             self.cuadruplos.add(new_cuadruplo)
             self.etiquetas[self.etiqueta].append(new_cuadruplo)
@@ -840,6 +864,9 @@ class Depurar(threading.Thread):
                 index+=1
      
         if default:
+            #creamos una variable para no arruinar la estructura
+            new_cuadruplo = Cuadruplo("=","0","",last_temp)
+            self.etiquetas[self.etiqueta].append(new_cuadruplo)
             new_cuadruplo = Cuadruplo("goto",new_default, "","")
             self.cuadruplos.add(new_cuadruplo)
             self.etiquetas[self.etiqueta].append(new_cuadruplo)
@@ -887,9 +914,13 @@ class Depurar(threading.Thread):
         #self.etiquetas[self.sentencia_return].append(pop1)
         
     def procesar_print(self, operacion, ts):
+        cadena = operacion.cadena.replace("\\t","   ")
+        cadena = cadena.replace("\\\\","\\")
+        cadena = cadena.replace("\\\\","\\")
+        cadena = cadena.replace("\\\'","\'")
+        cadena = cadena.replace("\\\"","\"")
         if operacion.argumentos:
-            ''
-            trozos = operacion.cadena.split("%")
+            trozos = cadena.split("%")
             argumentos = []
             for operacion in operacion.argumentos:
                 argumentos.append(self.procesar_operacion(operacion, ts))
@@ -897,9 +928,7 @@ class Depurar(threading.Thread):
             if len(trozos)== len(argumentos)+1:
                 ''
                 if trozos[0] !="":
-                    new_cuadruplo = Cuadruplo("print", "\"" +trozos[0]+"\"", "","")
-                    self.cuadruplos.add(new_cuadruplo)
-                    self.etiquetas[self.etiqueta].append(new_cuadruplo)
+                    self.imprimirCadena(trozos[0])
 
                 for i in range(0,len(argumentos)):
                     restante = trozos[i+1][1:]
@@ -913,18 +942,132 @@ class Depurar(threading.Thread):
                     if restante == "":
                         ''
                     else:
-                        new_cuadruplo = Cuadruplo("print", "\"" +restante+"\"", "","")
-                        self.cuadruplos.add(new_cuadruplo)
-                        self.etiquetas[self.etiqueta].append(new_cuadruplo)
+                        self.imprimirCadena(restante)
+                        
             else:
                 print("NO SE PUEDE IMPRIMIR DADO QUE NO POSEE EL MISMO NUMERO DE ARGUMENTOS")
 
         else:
-            cadena = operacion.cadena
-            new_cuadruplo = Cuadruplo("print", "\"" +cadena+"\"", "","")
+            self.imprimirCadena(cadena)
+
+    def imprimirCadena(self, cadena):
+        trozos = cadena.split("\\n")
+        if trozos[0] != "":
+            new_cuadruplo = Cuadruplo("print", "\"" +str(trozos[0])+"\"", "","")
             self.cuadruplos.add(new_cuadruplo)
             self.etiquetas[self.etiqueta].append(new_cuadruplo)
+        for i in trozos[1:]:
+            new_cuadruplo = Cuadruplo("print", "\"\\n\"", "","")
+            self.cuadruplos.add(new_cuadruplo)
+            self.etiquetas[self.etiqueta].append(new_cuadruplo)
+            if i != "":
+                self.etiquetas[self.etiqueta].append(new_cuadruplo)
+                new_cuadruplo = Cuadruplo("print", "\"" +str(i)+"\"", "","")
+                self.cuadruplos.add(new_cuadruplo)
+                self.etiquetas[self.etiqueta].append(new_cuadruplo)
+
+    def procesar_sentencias(self,sentencias, ts, call = False):
+        local = None
+        if call:
+            local = ts
+        else:
+            local = TablaSimbolos()
+            local.setPadre(ts)
+
+        for sentencia in sentencias:
+            line = sentencia.line
+            if self.detener:
+                return
+
+            self.step = False
+            
+            if self.editor.markersAtLine(line) == 1 or self.primer_break_activo:
+                #preguntamos si quiere ir paso a paso o continuar
+                if self.continuar:
+                    self.primer_break_activo = False
+                    self.continuar = False
+                else:
+                    self.primer_break_activo = True
+                    while self.step !=True:
+                        time.sleep(0.3)
+                        self.editor.SendScintilla(QsciScintilla.SCI_GOTOLINE,line)
+                        self.editor.setSelection(line,0,line,1)
+                        if self.detener:
+                            return
+
+
+
+            if isinstance(sentencia,Declaraciones): self.procesar_declaraciones(sentencia,local)
+            elif isinstance(sentencia,DeclaracionesStruct): self.procesar_declaracionesStruct(sentencia,local)
+            elif isinstance(sentencia,AsignacionSimple): self.procesar_asignacionSimple(sentencia,local)
+            elif isinstance(sentencia,AsignacionCompuesta): self.procesar_asignacionCompuesta(sentencia,local)
+            elif isinstance(sentencia, AsignacionStruct): self.procesar_asignacionStruct(sentencia, local)
+            elif isinstance(sentencia,  If):  self.procesar_if(sentencia,local)
+            elif isinstance(sentencia,While): self.procesar_while(sentencia,local)
+            elif isinstance(sentencia,DoWhile): self.procesar_doWhile(sentencia,local)
+            elif isinstance(sentencia, Llamada): self.procesar_llamada(sentencia,local)
+            elif isinstance(sentencia, Switch): self.procesar_switch(sentencia,local)
+            elif isinstance(sentencia, Break):  self.procesar_break()
+            elif isinstance(sentencia, Return): self.procesar_return(sentencia,ts)
+            elif isinstance(sentencia, Print): self.procesar_print(sentencia,local)
+            elif isinstance(sentencia, DeclaracionesArreglo): self.procesar_declaracionesArreglo(sentencia, local)
+            elif isinstance(sentencia, AsignacionArreglo): self.procesar_asignacionArreglo(sentencia, local)
+            elif isinstance(sentencia, DeclaracionesArregloStruct): self.procesar_declaracionesArregloStruct(sentencia, local)
+            elif isinstance(sentencia, AsignacionArregloStruct): self.procesar_asginacionArregloStruct(sentencia, local)
+            elif isinstance(sentencia, For): self.procesar_for(sentencia, local)
+            elif isinstance(sentencia, GoTo): self.procesar_goto(sentencia)
+            elif isinstance(sentencia, Etiqueta): self.procesar_etiqueta(sentencia)
+            elif isinstance(sentencia, Continue): self.procesar_continue()
+            elif isinstance(sentencia, AsignacionCasteo): self.procesar_asignacionCasteo(sentencia,local)
+            elif isinstance(sentencia, DeclaracionCasteo): self.procesar_declaracionCasteo(sentencia, local)            
+            elif isinstance(sentencia, Ternario):   self.procesar_ternario(sentencia, local)
+            self.imprimirCuadruplos()
+            self.imprimir3D()
+			
+    def procesar_etiqueta(self, sentencia):
+        id = sentencia.id
+        self.etiquetas[id] = []
+        self.etiqueta = id
     
+    def procesar_goto(self, sentencia):
+        cuadruplo = Cuadruplo("goto",sentencia.id,"","")
+        self.cuadruplos.add(cuadruplo)
+        self.etiquetas[self.etiqueta].append(cuadruplo)
+
+    def procesar_continue(self):
+        new_cuadruplo = Cuadruplo("goto",self.ambientes_continue[len(self.ambientes_continue)-1], "","")
+        self.cuadruplos.add(new_cuadruplo)
+        self.etiquetas[self.etiqueta].append(new_cuadruplo)
+
+    def procesar_asignacionCasteo(self,instruccion,ts):
+        id = instruccion.id
+        if ts.existePadre(id):
+            temp = ts.getValor(id, ts).temporal
+            last_temp = self.procesar_operacion(instruccion.operacion,ts)
+            new_cuadruplo = None
+            if instruccion.casteo == "double":
+                new_cuadruplo = Cuadruplo("=", "(float)",last_temp,temp)
+            else:
+                new_cuadruplo = Cuadruplo("=", "({0})".format(instruccion.casteo),last_temp,temp)
+            self.cuadruplos.add(new_cuadruplo)
+            self.etiquetas[self.etiqueta].append(new_cuadruplo)
+
+    def procesar_declaracionCasteo(self, instruccion, ts):
+        id = instruccion.id
+        if not ts.existe(id):
+            last_temp = self.procesar_operacion(instruccion.operacion,ts)
+            temp = self.generarTemporal()
+            new_simbol = Simbolo(id, temp, instruccion.line, 0)
+            ts.add(new_simbol)
+            self.add_token(id,temp, instruccion.line)
+            new_cuadruplo = None
+            if instruccion.casteo == "double":
+                new_cuadruplo = Cuadruplo("=", "(float)",last_temp,temp)
+            else:
+                new_cuadruplo = Cuadruplo("=", "({0})".format(instruccion.casteo),last_temp,temp)
+            self.cuadruplos.add(new_cuadruplo)
+            self.etiquetas[self.etiqueta].append(new_cuadruplo)
+
     def procesar_ternario(self, instruccion, ts):
         new_end = self.generarEND()
         #si es una declaracion
@@ -1005,107 +1148,6 @@ class Depurar(threading.Thread):
                 #creamos la etiqueta end
                 self.etiqueta = new_end
                 self.etiquetas[self.etiqueta] = []
-    
-    def procesar_sentencias(self,sentencias, ts, call = False):
-        local = None
-        if call:
-            local = ts
-        else:
-            local = TablaSimbolos()
-            local.setPadre(ts)
-
-        for sentencia in sentencias:
-            line = sentencia.line
-            if self.detener:
-                return
-
-            self.step = False
-            
-            if self.editor.markersAtLine(line) == 1 or self.primer_break_activo:
-                #preguntamos si quiere ir paso a paso o continuar
-                if self.continuar:
-                    self.primer_break_activo = False
-                    self.continuar = False
-                else:
-                    self.primer_break_activo = True
-                    while self.step !=True:
-                        time.sleep(0.3)
-                        self.editor.SendScintilla(QsciScintilla.SCI_GOTOLINE,line)
-                        self.editor.setSelection(line,0,line,1)
-                        if self.detener:
-                            return
-
-
-
-            if isinstance(sentencia,Declaraciones): self.procesar_declaraciones(sentencia,local)
-            elif isinstance(sentencia,DeclaracionesStruct): self.procesar_declaracionesStruct(sentencia,local)
-            elif isinstance(sentencia,AsignacionSimple): self.procesar_asignacionSimple(sentencia,local)
-            elif isinstance(sentencia,AsignacionCompuesta): self.procesar_asignacionCompuesta(sentencia,local)
-            elif isinstance(sentencia, AsignacionStruct): self.procesar_asignacionStruct(sentencia, local)
-            elif isinstance(sentencia,  If):  self.procesar_if(sentencia,local)
-            elif isinstance(sentencia,While): self.procesar_while(sentencia,local)
-            elif isinstance(sentencia,DoWhile): self.procesar_doWhile(sentencia,local)
-            elif isinstance(sentencia, Llamada): self.procesar_llamada(sentencia,local)
-            elif isinstance(sentencia, Switch): self.procesar_switch(sentencia,local)
-            elif isinstance(sentencia, Break):  self.procesar_break()
-            elif isinstance(sentencia, Return): self.procesar_return(sentencia,ts)
-            elif isinstance(sentencia, Print): self.procesar_print(sentencia,local)
-            elif isinstance(sentencia, DeclaracionesArreglo): self.procesar_declaracionesArreglo(sentencia, local)
-            elif isinstance(sentencia, AsignacionArreglo): self.procesar_asignacionArreglo(sentencia, local)
-            elif isinstance(sentencia, DeclaracionesArregloStruct): self.procesar_declaracionesArregloStruct(sentencia, local)
-            elif isinstance(sentencia, AsignacionArregloStruct): self.procesar_asginacionArregloStruct(sentencia, local)
-            elif isinstance(sentencia, For): self.procesar_for(sentencia, local)
-            elif isinstance(sentencia, GoTo): self.procesar_goto(sentencia)
-            elif isinstance(sentencia, Etiqueta): self.procesar_etiqueta(sentencia)
-            elif isinstance(sentencia, Continue): self.procesar_continue()
-            elif isinstance(sentencia, AsignacionCasteo): self.procesar_asignacionCasteo(sentencia,local)
-            elif isinstance(sentencia, DeclaracionCasteo): self.procesar_declaracionCasteo(sentencia, local)            
-            elif isinstance(sentencia, Ternario):   self.procesar_ternario(sentencia, local)
-            self.imprimirCuadruplos()
-            self.imprimir3D()
-
-    def procesar_etiqueta(self, sentencia):
-        id = sentencia.id
-        self.etiquetas[id] = []
-        self.etiqueta = id
-    
-    def procesar_goto(self, sentencia):
-        cuadruplo = Cuadruplo("goto",sentencia.id,"","")
-        self.cuadruplos.add(cuadruplo)
-        self.etiquetas[self.etiqueta].append(cuadruplo)
-
-    def procesar_continue(self):
-        new_cuadruplo = Cuadruplo("goto",self.ambientes_continue[len(self.ambientes_continue)-1], "","")
-        self.cuadruplos.add(new_cuadruplo)
-        self.etiquetas[self.etiqueta].append(new_cuadruplo)
-
-    def procesar_asignacionCasteo(self,instruccion,ts):
-        id = instruccion.id
-        if ts.existePadre(id):
-            temp = ts.getValor(id, ts).temporal
-            last_temp = self.procesar_operacion(instruccion.operacion,ts)
-            new_cuadruplo = None
-            if instruccion.casteo == "double":
-                new_cuadruplo = Cuadruplo("=", "(float)",last_temp,temp)
-            else:
-                new_cuadruplo = Cuadruplo("=", "({0})".format(instruccion.casteo),last_temp,temp)
-            self.cuadruplos.add(new_cuadruplo)
-            self.etiquetas[self.etiqueta].append(new_cuadruplo)
-
-    def procesar_declaracionCasteo(self, instruccion, ts):
-        id = instruccion.id
-        if not ts.existe(id):
-            last_temp = self.procesar_operacion(instruccion.operacion,ts)
-            temp = self.generarTemporal()
-            new_simbol = Simbolo(id, temp, instruccion.line, 0)
-            ts.add(new_simbol)
-            new_cuadruplo = None
-            if instruccion.casteo == "double":
-                new_cuadruplo = Cuadruplo("=", "(float)",last_temp,temp)
-            else:
-                new_cuadruplo = Cuadruplo("=", "({0})".format(instruccion.casteo),last_temp,temp)
-            self.cuadruplos.add(new_cuadruplo)
-            self.etiquetas[self.etiqueta].append(new_cuadruplo)
 
     def procesar_operacion(self, operacion, ts):
         if isinstance(operacion,OperacionNumero): return self.procesar_valor(operacion, ts)
@@ -1214,7 +1256,7 @@ class Depurar(threading.Thread):
             new_cuadruplo = Cuadruplo("=", temp, "",new_temp)
             self.cuadruplos.add(new_cuadruplo)
             self.etiquetas[self.etiqueta].append(new_cuadruplo)
-            return new_temp
+            return new_temp        
 
     def procesar_valor(self, expresion, ts):
         if isinstance(expresion,OperacionVariable): 
@@ -1320,6 +1362,3 @@ class Depurar(threading.Thread):
         #aumentamos su contador para que no existan mismos temporales
         self.index_dec += 1
         return salida
-
-    def stop(self):
-        self.detener = True

@@ -7,6 +7,8 @@ from augus.Ejecutar import Ejecutor
 import augus.GramaticaA as GramaticaA
 from augus.Recolectar import Recolectar
 from augus.TablaSimbolosA import TablaSimbolosA as TSA
+from Optimizacion import Optimizacion
+from augus.HilosGraficar import GraficarTS
 
 class Traducir(threading.Thread):
     def __init__(self, group=None, target=None, name=None,
@@ -19,6 +21,7 @@ class Traducir(threading.Thread):
         self.C3D = args[2]
         self.consola = args[3]
         self.GTS = args[4]
+        self.C3DO = args[5]
         self.ts = TablaSimbolos()
         self.index_temporal = 0
         self.cuadruplos = Cuadruplos()
@@ -26,7 +29,7 @@ class Traducir(threading.Thread):
         self.funciones = {}
         self.structs = {}
         self.etiqueta = "main"
-        self.ambito_ejecucion = "main"
+        self.ambito_ejecucion = "global"
         self.last_etiqueta = ""
         self.index_if = 0
         self.index_etiquetas = 0
@@ -47,14 +50,19 @@ class Traducir(threading.Thread):
         self.index_dec = 0
         self.codigo = ""
         self.in_console = None
+        self.pila_ts = []
 
 
     def run(self):
         self.recolectar(self.ast)
         self.procesar()
+        graficar_ts = GraficarTS(args=(self.pila_ts,"tabla_traducir"))
+        graficar_ts.start()
         self.imprimirCuadruplos()
         self.imprimir3D()
-        self.analizar()
+        self.in_console = Optimizacion(args=(self.etiquetas,self.C3DO,self.consola, self.GTS),daemon=True)
+        self.in_console.start()
+        #self.analizar()
 
     def analizar(self):
         ast2 = GramaticaA.parse(self.codigo)
@@ -63,12 +71,14 @@ class Traducir(threading.Thread):
         recolector = Recolectar(ast3,ts,[])
         recolector.procesar()
         self.in_console = Ejecutor(args=(ast3,ts,[],"",self.consola, self.GTS),daemon=True)
-        self.in_console.start()
+        #self.in_console.start()
         #print(self.codigo)
     
+    def add_token(self, id, temporal, linea):
+        self.pila_ts.append({"id":id, "valor":temporal, "ambito":self.ambito_ejecucion,"linea":linea})
+
     def setParams(self, linea, estado):
-        self.in_console.setText(linea)
-        self.in_console.setState(estado)
+        self.in_console.setParams(linea,estado)
 
     def imprimir3D(self):
         self.codigo = ""
@@ -166,6 +176,7 @@ class Traducir(threading.Thread):
         if not self.ts.existe(id):
             temp = tablaStruct.generarStruct()
             new_simbol = Simbolo(id, temp, instruccion.line, instruccion.column)
+            self.add_token(id,temp, instruccion.line)
             self.ts.add(new_simbol)
 
     def recolectar_declaracion(self, instruccion):
@@ -175,15 +186,17 @@ class Traducir(threading.Thread):
                 last_temp = self.procesar_operacion(instruccion.valor,self.ts)
                 temp = self.generarHeap()
                 new_simbol = Simbolo(id, temp, instruccion.line, instruccion.column)
+                self.add_token(id,temp, instruccion.line)
                 self.ts.add(new_simbol)
-                new_cuadruplo = Cuadruplo("=", last_temp,"",temp)
+                new_cuadruplo = Cuadruplo("=", last_temp," ",temp)
                 self.cuadruplos.add(new_cuadruplo)
                 self.etiquetas[self.etiqueta].append(new_cuadruplo)
             else:
                 temp = self.generarHeap()
                 new_simbol = Simbolo(id, temp, instruccion.line, instruccion.column)
+                self.add_token(id,temp, instruccion.line)
                 self.ts.add(new_simbol)
-                new_cuadruplo = Cuadruplo("=", "0","",temp)
+                new_cuadruplo = Cuadruplo("=", "0"," ",temp)
                 self.cuadruplos.add(new_cuadruplo)
                 self.etiquetas[self.etiqueta].append(new_cuadruplo)
                 
@@ -198,7 +211,7 @@ class Traducir(threading.Thread):
                     struct.add(new_atributo)
                     
             self.structs[id] = struct
-            new_cuadruplo = Cuadruplo("=","array()","",temp)
+            new_cuadruplo = Cuadruplo("=","array()"," ",temp)
             self.cuadruplos.add(new_cuadruplo)
             self.etiquetas[self.etiqueta].append(new_cuadruplo)
     
@@ -231,15 +244,17 @@ class Traducir(threading.Thread):
                 last_temp = self.procesar_operacion(instruccion.valor,ts)
                 temp = self.generarTemporal()
                 new_simbol = Simbolo(id, temp, instruccion.line, instruccion.column)
+                self.add_token(id,temp, instruccion.line)
                 ts.add(new_simbol)
-                new_cuadruplo = Cuadruplo("=", last_temp,"",temp)
+                new_cuadruplo = Cuadruplo("=", last_temp," ",temp)
                 self.cuadruplos.add(new_cuadruplo)
                 self.etiquetas[self.etiqueta].append(new_cuadruplo)
             else:
                 temp = self.generarTemporal()
                 new_simbol = Simbolo(id, temp, instruccion.line, instruccion.column)
                 ts.add(new_simbol)
-                new_cuadruplo = Cuadruplo("=", "0","",temp)
+                self.add_token(id,temp, instruccion.line)
+                new_cuadruplo = Cuadruplo("=", "0"," ",temp)
                 self.cuadruplos.add(new_cuadruplo)
                 self.etiquetas[self.etiqueta].append(new_cuadruplo)
 
@@ -252,9 +267,10 @@ class Traducir(threading.Thread):
         if not ts.existe(id):
             temp = self.generarTemporal()
             new_simbol = Simbolo(id, temp, 0, 0)
+            self.add_token(id,temp, instruccion.line)
             ts.add(new_simbol)
             valores = instruccion.valores
-            new_cuadruplo = Cuadruplo("=", "array()","",temp)
+            new_cuadruplo = Cuadruplo("=", "array()"," ",temp)
             self.cuadruplos.add(new_cuadruplo)
             self.etiquetas[self.etiqueta].append(new_cuadruplo)
             if valores:
@@ -269,8 +285,9 @@ class Traducir(threading.Thread):
         if not ts.existe(id):
             temp = self.generarTemporal()
             new_simbol = Simbolo(id, temp, 0, 0)
+            self.add_token(id,temp, instruccion.line)
             ts.add(new_simbol)
-            new_cuadruplo = Cuadruplo("=", "array()","",temp)
+            new_cuadruplo = Cuadruplo("=", "array()"," ",temp)
             self.cuadruplos.add(new_cuadruplo)
             self.etiquetas[self.etiqueta].append(new_cuadruplo)
 
@@ -296,6 +313,7 @@ class Traducir(threading.Thread):
         if not ts.existe(id):
             temp = tablaStruct.generarStruct()
             new_simbol = Simbolo(id, temp, instruccion.line, instruccion.column)
+            self.add_token(id,temp, instruccion.line)
             ts.add(new_simbol)
 
     def procesar_asignacionSimple(self, instruccion, ts):
@@ -478,7 +496,13 @@ class Traducir(threading.Thread):
                 self.etiqueta = old_etiqueta
         #else
         if s_else:
-            self.etiqueta = old_etiqueta
+            new_if = self.generarIF()
+            new_cuadruplo = Cuadruplo("goto",new_if, "","")
+            self.cuadruplos.add(new_cuadruplo)
+            self.etiquetas[old_etiqueta].append(new_cuadruplo)
+
+            self.etiquetas[new_if] = []
+            self.etiqueta = new_if
             self.procesar_sentencias(s_else.sentencias,ts)
         #creamos una nueva etiqueta que nos diriga hacia lo que traia el main
         new_cuadruplo = Cuadruplo("goto",new_etiqueta, "","")
@@ -495,9 +519,9 @@ class Traducir(threading.Thread):
         new_while = self.generarWHILE()
         self.ambientes_continue.append(new_while)
 
-        new_cuadruplo2 = Cuadruplo("goto",new_while, "","")
+        new_cuadruplo3 = Cuadruplo("goto",new_while, "","")
         #self.cuadruplos.add(new_cuadruplo)
-        self.etiquetas[self.etiqueta].append(new_cuadruplo2)
+        self.etiquetas[self.etiqueta].append(new_cuadruplo3)
         self.etiquetas[new_while] = []
         self.etiqueta = new_while
         last_temp = self.procesar_operacion(sentenciaWhile.condicion,ts)
@@ -516,7 +540,7 @@ class Traducir(threading.Thread):
         self.etiquetas[new_if] = []
         self.procesar_sentencias(sentenciaWhile.sentencias,ts)
         #agregamos un goto while;
-        self.etiquetas[self.etiqueta].append(new_cuadruplo2)
+        self.etiquetas[self.etiqueta].append(new_cuadruplo3)
 
         self.etiquetas[new_etiqueta] = []
         self.etiqueta = new_etiqueta
@@ -564,6 +588,9 @@ class Traducir(threading.Thread):
         self.cuadruplos.add(new_cuadruplo2)
         #tambien lo agregamos a nuestra lista de etiquetas
         self.etiquetas[self.etiqueta].append(new_cuadruplo2)
+        #agregamos una etiqueta para que no lo optimice
+        new_cuadruplo = Cuadruplo("=","0","",last_temp)
+        self.etiquetas[self.etiqueta].append(new_cuadruplo)
         #ahora creamos el goto para regresar a do
         new_cuadruplo = Cuadruplo("goto",new_end,"","")
         #lo agregamos el cuadruplo a su etiqueta
@@ -787,6 +814,7 @@ class Traducir(threading.Thread):
                 default = caso
         #generar end para salir del ciclo
         new_end = self.generarEtiqueta()
+        self.ambientes.append(new_end)
         #primero, tenemos que tener la condicion
         last_temp = self.procesar_operacion(sentencia.condicion,ts)
         #area para traducir todos los casos
@@ -804,6 +832,8 @@ class Traducir(threading.Thread):
                 index+=1
 
         if default:
+            new_cuadruplo = Cuadruplo("=","0","",last_temp)
+            self.etiquetas[self.etiqueta].append(new_cuadruplo)
             new_cuadruplo = Cuadruplo("goto",new_default, "","")
             self.cuadruplos.add(new_cuadruplo)
             self.etiquetas[self.etiqueta].append(new_cuadruplo)
@@ -827,6 +857,9 @@ class Traducir(threading.Thread):
                 index+=1
      
         if default:
+            #creamos una variable para no arruinar la estructura
+            new_cuadruplo = Cuadruplo("=","0","",last_temp)
+            self.etiquetas[self.etiqueta].append(new_cuadruplo)
             new_cuadruplo = Cuadruplo("goto",new_default, "","")
             self.cuadruplos.add(new_cuadruplo)
             self.etiquetas[self.etiqueta].append(new_cuadruplo)
@@ -874,9 +907,13 @@ class Traducir(threading.Thread):
         #self.etiquetas[self.sentencia_return].append(pop1)
         
     def procesar_print(self, operacion, ts):
+        cadena = operacion.cadena.replace("\\t","   ")
+        cadena = cadena.replace("\\\\","\\")
+        cadena = cadena.replace("\\\\","\\")
+        cadena = cadena.replace("\\\'","\'")
+        cadena = cadena.replace("\\\"","\"")
         if operacion.argumentos:
-            ''
-            trozos = operacion.cadena.split("%")
+            trozos = cadena.split("%")
             argumentos = []
             for operacion in operacion.argumentos:
                 argumentos.append(self.procesar_operacion(operacion, ts))
@@ -884,9 +921,7 @@ class Traducir(threading.Thread):
             if len(trozos)== len(argumentos)+1:
                 ''
                 if trozos[0] !="":
-                    new_cuadruplo = Cuadruplo("print", "\"" +trozos[0]+"\"", "","")
-                    self.cuadruplos.add(new_cuadruplo)
-                    self.etiquetas[self.etiqueta].append(new_cuadruplo)
+                    self.imprimirCadena(trozos[0])
 
                 for i in range(0,len(argumentos)):
                     restante = trozos[i+1][1:]
@@ -900,18 +935,30 @@ class Traducir(threading.Thread):
                     if restante == "":
                         ''
                     else:
-                        new_cuadruplo = Cuadruplo("print", "\"" +restante+"\"", "","")
-                        self.cuadruplos.add(new_cuadruplo)
-                        self.etiquetas[self.etiqueta].append(new_cuadruplo)
+                        self.imprimirCadena(restante)
+                        
             else:
                 print("NO SE PUEDE IMPRIMIR DADO QUE NO POSEE EL MISMO NUMERO DE ARGUMENTOS")
 
         else:
-            cadena = operacion.cadena
-            new_cuadruplo = Cuadruplo("print", "\"" +cadena+"\"", "","")
+            self.imprimirCadena(cadena)
+
+    def imprimirCadena(self, cadena):
+        trozos = cadena.split("\\n")
+        if trozos[0] != "":
+            new_cuadruplo = Cuadruplo("print", "\"" +str(trozos[0])+"\"", "","")
             self.cuadruplos.add(new_cuadruplo)
             self.etiquetas[self.etiqueta].append(new_cuadruplo)
-    
+        for i in trozos[1:]:
+            new_cuadruplo = Cuadruplo("print", "\"\\n\"", "","")
+            self.cuadruplos.add(new_cuadruplo)
+            self.etiquetas[self.etiqueta].append(new_cuadruplo)
+            if i != "":
+                self.etiquetas[self.etiqueta].append(new_cuadruplo)
+                new_cuadruplo = Cuadruplo("print", "\"" +str(i)+"\"", "","")
+                self.cuadruplos.add(new_cuadruplo)
+                self.etiquetas[self.etiqueta].append(new_cuadruplo)
+
     def procesar_sentencias(self,sentencias, ts, call = False):
         local = None
         if call:
@@ -981,6 +1028,7 @@ class Traducir(threading.Thread):
             temp = self.generarTemporal()
             new_simbol = Simbolo(id, temp, instruccion.line, 0)
             ts.add(new_simbol)
+            self.add_token(id,temp, instruccion.line)
             new_cuadruplo = None
             if instruccion.casteo == "double":
                 new_cuadruplo = Cuadruplo("=", "(float)",last_temp,temp)

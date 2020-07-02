@@ -233,6 +233,7 @@ def p_instruccion(p):
     '''
     p[0] = p[1]
 
+
 def p_declaracion(p):
     'declaracion    :   tipo declaraciones PYCOMA'
     p[0] = Declaraciones(p[1],p[2],p.lineno(3))
@@ -249,6 +250,10 @@ def p_declaraciones2(p):
 def p_declaracion2(p):
     'decla          :   ID IGUAL operacion'
     p[0] = Declaracion(p[1],p[3],p.lineno(1),find_column(p.slice[1]))
+
+def p_declaracion_string(p):
+    'decla          :   ID CORIZQ CORDER IGUAL CADENA'
+    p[0] = Declaracion(p[1],OperacionCadena("\""+p[5]+"\"",p.lineno(5),find_column(p.slice[5])),p.lineno(1),find_column(p.slice[1]))
 
 def p_declaracion3(p):
     'decla          :   ID '

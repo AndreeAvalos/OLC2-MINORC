@@ -8,7 +8,9 @@ parsetab.py
 .vscode
 prueba.py
 #augus/ply
-
+*.png
+*.jpg
+*.dot
 # C extensions
 *.so
 
