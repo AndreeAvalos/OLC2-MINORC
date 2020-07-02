@@ -1,6 +1,13 @@
 import ply.yacc as yacc
 import ply.lex as lex
 from Instruccion import *
+from augus.Recolectar import TokenError
+
+lst_errores = []
+def agregarError(tipo,descripcion,line,column):
+    global lst_errores
+    new_error = TokenError(tipo,descripcion,line,column)
+    lst_errores.append(new_error)
 
 reservadas = {
     'int': 'INTEGER',
@@ -178,7 +185,7 @@ def t_nuevalinea(t):
     
 def t_error(t):
     #editar para agregar a una tabla
-    print("Illegal character \"{0}\" linea: {1}".format(t.value[0],t.lexer.lineno+1))
+    agregarError('Lexico',"Caracter \'{0}\' ilegal".format(t.value[0]), t.lexer.lineno+1,find_column(t))
     #agregarError('Lexico',"Caracter \'{0}\' ilegal".format(t.value[0]), t.lexer.lineno+1,find_column(t))
     t.lexer.skip(1)
 
@@ -735,14 +742,14 @@ def p_valor_cadena(p):
     p[0] = OperacionCadena("\""+p[1]+"\"",p.lineno(1),find_column(p.slice[1])) 
 
 def p_error(p):
-    print("Error sintáctico en '%s'" % p.value, str(p.lineno))
-
-
+    agregarError("Sintactico","Sintaxis no reconocida \"{0}\"".format(p.value),p.lineno+1, find_column(p))
 
 input = ""
 parser = yacc.yacc(write_tables=False)
 def parse(inpu) :
     global input
+    global lst_errores
+    lst_errores = []
     lexer = lex.lex()
     lexer.lineno=0
     index = 0

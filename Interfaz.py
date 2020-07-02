@@ -1,6 +1,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import Gramatica
 import GramaticaGDA 
+import GramaticaM
 from Traducir import Traducir
 from Depurar import Depurar
 from PyQt5.Qsci import QsciLexerCPP, QsciScintilla
@@ -455,9 +456,16 @@ class Interfaz(object):
         items = tab.children()
         codigo = items[0].text()
         ast = Gramatica.parse(codigo)
+        lst_errores = Gramatica.lst_errores
+        errores = GraficarError(args=(lst_errores,"Errores"),daemon = True)
+        errores.start()
         gda = GramaticaGDA.parse(codigo)
+        nodo = GramaticaM.parse(codigo)
+        g_ast = GraficarArbol(args=(nodo,"AST"),daemon = True)
+        g_ast.start()
         g_gda = GraficarGDA(args=(gda,"GDA"),daemon=True)
         g_gda.start()
+        
         self.codigo_3d.clear()
         self.codigo_3d_optimizado.clear()
         traducir = Traducir(args=(ast,self.tabla_cuadruplos, self.codigo_3d,self.consola,self.tabla_simbolos,self.codigo_3d_optimizado),daemon=True)
@@ -579,7 +587,6 @@ class Interfaz(object):
             em = QtWidgets.QErrorMessage(self.mw)
             em.showMessage("No fue posible guardar {0}".format(name))
     
-
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MinorC"))

@@ -82,10 +82,10 @@ class GraficarGramatica(threading.Thread):
             file.write("</TABLE>")
             file.write("\n>, ];\n")
             file.write("}")
+            file.close()
         except:
             print("ERROR AL ESCRIBIR TABLA")
         finally:
-            file.close()
             self.cmd(destino)
 
 class GraficarGDA(threading.Thread):
@@ -170,10 +170,10 @@ class GraficarTS(threading.Thread):
             file.write("</TABLE>")
             file.write("\n>, ];\n")
             file.write("}")
+            file.close()
         except:
             print("ERROR AL ESCRIBIR TABLA")
         finally:
-            file.close()
             self.cmd(destino)
 
 class Graficar3D(threading.Thread):
@@ -214,10 +214,10 @@ class Graficar3D(threading.Thread):
             file.write("</TABLE>")
             file.write("\n>, ];\n")
             file.write("}")
+            file.close()
         except:
             print("ERROR AL ESCRIBIR TABLA")
         finally:
-            file.close()
             self.cmd(destino)
 
     def imprimir3D(self,cuadruplo):
@@ -244,3 +244,55 @@ class Graficar3D(threading.Thread):
                 return " {0}={1}{2};".format(cuadruplo.result,cuadruplo.arg1,cuadruplo.arg2)
         else:
             return cuadruplo
+
+class GraficarError(threading.Thread):
+    def __init__(self, group=None, target=None, name=None,
+                 args=(), kwargs=None, *, daemon=None):
+        super().__init__(group=group, target=target, name=name,
+                         daemon=daemon)
+        self.simbolos = args[0]
+        self.name = args[1]
+
+    def cmd(self, commando):
+        subprocess.run(commando, shell=True)
+
+    def run(self):
+        self.graficarErrores()
+
+    def graficarErrores(self):
+        lst_errores = self.simbolos
+        ruta = "{0}.dot".format(self.name)
+        destino= "dot -Tpng {0}.dot -o {1}.png".format(self.name, self.name)
+
+        try:
+            file = open(ruta, "w")
+            file.write("digraph tablaErrores{\n")
+            file.write("graph [ratio=fill];node [label=\"\\N\", fontsize=15, shape=plaintext];\n")
+            file.write("graph [bb=\"0,0,352,154\"];\n")
+            file.write("arset [label=<")
+            file.write("<TABLE ALIGN=\"LEFT\">\n")
+            file.write("<TR><TD>TIPO</TD><TD>DESCRIPCION</TD><TD>LINEA</TD><TD>COLUMNA</TD></TR>\n")
+            for token in lst_errores:
+                file.write("<TR>")
+                file.write("<TD>")
+                file.write(token.tipo)
+                file.write("</TD>")
+                file.write("<TD>")
+                file.write(token.descripcion)
+                file.write("</TD>")
+                file.write("<TD>")
+                file.write(str(token.line))
+                file.write("</TD>")
+                file.write("<TD>")
+                file.write(str(token.column))
+                file.write("</TD>")
+                file.write("</TR>\n")
+            file.write("</TABLE>")
+            file.write("\n>, ];\n")
+            file.write("}")
+            file.close()
+        except:
+            print("ERROR AL ESCRIBIR TABLA")
+        finally:
+            
+            self.cmd(destino)

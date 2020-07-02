@@ -52,10 +52,8 @@ class Ejecutor(threading.Thread):
             return
     
 
-    def setText(self,in_):
+    def setParams(self,in_,state):
         self.entrada= in_
-    
-    def setState(self, state):
         self.leido= state
 
     def agregarError(self,descripcion,line,column):

@@ -22,8 +22,7 @@ class Optimizacion(threading.Thread):
         self.in_console = None
 
     def setParams(self, linea, estado):
-        self.in_console.setText(linea)
-        self.in_console.setState(estado)
+        self.in_console.setParams(linea,estado)
 
     def imprimir3D(self):
         self.codigo = ""
@@ -78,7 +77,6 @@ class Optimizacion(threading.Thread):
         #print(self.optimizadas)
         g3d = Graficar3D(args=(self.optimizadas,"reporteOptimizado"),daemon= True)
         g3d.start()
-
 
     def analizar(self):
             ast2 = GramaticaA.parse(self.codigo)
@@ -291,5 +289,6 @@ class Optimizacion(threading.Thread):
                         ''
                 etiquetas[etiqueta].append(self.etiquetas[etiqueta][i])
         return etiquetas
+    
     def add(self, cuadruplo, regla):
         self.optimizadas.append({"linea":cuadruplo, "regla": regla})

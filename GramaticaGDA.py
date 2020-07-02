@@ -179,7 +179,7 @@ def t_nuevalinea(t):
     
 def t_error(t):
     #editar para agregar a una tabla
-    print("Illegal character \"{0}\" linea: {1}".format(t.value[0],t.lexer.lineno+1))
+    #print("Illegal character \"{0}\" linea: {1}".format(t.value[0],t.lexer.lineno+1))
     #agregarError('Lexico',"Caracter \'{0}\' ilegal".format(t.value[0]), t.lexer.lineno+1,find_column(t))
     t.lexer.skip(1)
 
