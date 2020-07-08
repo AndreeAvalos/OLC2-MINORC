@@ -159,7 +159,7 @@ def t_CADENA(t):
     return t
 
 def t_CARACTER(t):
-    r'\'.\''
+    r'\'.*\''
     t.value = t.value[1:-1] # remuevo las comillas
     return t 
 

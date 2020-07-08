@@ -189,13 +189,14 @@ class Optimizacion(threading.Thread):
                                             etiquetas[etiqueta].append(cuadruplo)
                                         else:
                                             self.add(cuadruplo,3)
-                                        etiquetas[etiqueta].append(new)
-                                        eliminadas[_if]=goto_end.arg1
-                                        #obtendria todas las instrucciones del if
-                                        for item in self.etiquetas[_if]:
-                                            etiquetas[etiqueta].append(item)
-                                        flag = True
-                                        continue
+                                        if new:
+                                            etiquetas[etiqueta].append(new)
+                                            eliminadas[_if]=goto_end.arg1
+                                            #obtendria todas las instrucciones del if
+                                            for item in self.etiquetas[_if]:
+                                                etiquetas[etiqueta].append(item)
+                                            flag = True
+                                            continue
                                     elif pasada == 0:
                                         cuadruplo = etiquetas[etiqueta].pop()
                                         self.add(cuadruplo,3)
@@ -272,8 +273,10 @@ class Optimizacion(threading.Thread):
         
         if change:
             return Cuadruplo("if", "{0}{1}{2}".format( cuadruplo.arg1, op, cuadruplo.arg2),"goto" ,goto_end)
-        else:
+        elif cuadruplo.op == '=':
             return Cuadruplo("if","!"+cuadruplo.result,"goto",goto_end)
+        else:
+            return None
     #End Region para regla 3
     def regla4(self):
         etiquetas = {}
@@ -323,7 +326,7 @@ class Optimizacion(threading.Thread):
     def regla6(self):
         ''
         etiquetas = {}
-        eliminadas = self.eliminadas
+        eliminadas = {}
         for etiqueta in self.etiquetas:
             etiquetas[etiqueta] = []
             for cuadruplo in self.etiquetas[etiqueta]:
@@ -342,13 +345,25 @@ class Optimizacion(threading.Thread):
                             continue
                 etiquetas[etiqueta].append(cuadruplo)
         self.eliminadas = eliminadas
+        indice = 0
+        for salto in eliminadas:
+            for etiqueta in etiquetas:
+                indice = 0
+                for cuadruplo in etiquetas[etiqueta]:
+                    if cuadruplo.op == "if":
+                        if cuadruplo.result == salto:
+                             etiquetas[etiqueta][indice].result = eliminadas[salto]
+                    elif cuadruplo.op == "goto":
+                        if cuadruplo.arg1 == salto:
+                            etiquetas[etiqueta][indice].arg1 = eliminadas[salto]
+                    indice +=1
 
         return etiquetas
 
     def regla7(self):
         ''
         etiquetas = {}
-        eliminadas = self.eliminadas
+        eliminadas = {}
         for etiqueta in self.etiquetas:
             etiquetas[etiqueta] = []
             for cuadruplo in self.etiquetas[etiqueta]:
@@ -367,19 +382,27 @@ class Optimizacion(threading.Thread):
                             continue
                 etiquetas[etiqueta].append(cuadruplo)
         #una vez terminado el proceso seguimos a eliminar las etiquetas que cambiaron
-        for etiqueta in eliminadas:
-            self.add(etiqueta + ":",7)
+        for etiqueta in self.eliminadas:
+            self.add(etiqueta + ":",6)
             del etiquetas[etiqueta]
+
+        for etiqueta in eliminadas:
+            if etiqueta in etiquetas:
+                self.add(etiqueta + ":",7)
+                del etiquetas[etiqueta]
         #recorremos la lista de nuevo en busca de if y goto que puedan tener las etiquetas
+        indice = 0
         for salto in eliminadas:
             for etiqueta in etiquetas:
+                indice = 0
                 for cuadruplo in etiquetas[etiqueta]:
                     if cuadruplo.op == "if":
                         if cuadruplo.result == salto:
-                            cuadruplo.result = eliminadas[salto]
+                             etiquetas[etiqueta][indice].result = eliminadas[salto]
                     elif cuadruplo.op == "goto":
                         if cuadruplo.arg1 == salto:
-                            cuadruplo.arg1 = eliminadas[salto]
+                            etiquetas[etiqueta][indice].arg1 = eliminadas[salto]
+                    indice +=1
         
         return etiquetas
 

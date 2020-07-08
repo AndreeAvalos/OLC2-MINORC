@@ -1008,7 +1008,7 @@ class Traducir(threading.Thread):
 
     def procesar_asignacionCasteo(self,instruccion,ts):
         id = instruccion.id
-        if ts.existePadre(id):
+        if ts.existePadre(id,ts):
             temp = ts.getValor(id, ts).temporal
             last_temp = self.procesar_operacion(instruccion.operacion,ts)
             new_cuadruplo = None
