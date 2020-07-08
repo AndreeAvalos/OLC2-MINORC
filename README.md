@@ -19,10 +19,10 @@ Contenido:
 * Instrucciones
 
 Requisitos:
-*Pyqt5
-*QScintilla
-*Python 3.7+
-*Graphviz
+* Pyqt5
+* QScintilla
+* Python 3.7+
+* Graphviz
 
 Ejecucion:
 
