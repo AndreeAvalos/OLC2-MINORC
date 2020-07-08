@@ -18,6 +18,12 @@ Contenido:
 * Tabla de simbolos
 * Instrucciones
 
+Requisitos:
+*Pyqt5
+*QScintilla
+*Python 3.7+
+*Graphviz
+
 Ejecucion:
 
 ```
@@ -28,4 +34,4 @@ Colaboradores:
 * Carlos Andree Avalos Soto       201408580
 
 Referencias
-* [Clase QCodeEditor](https://github.com/luchko/QCodeEditor)
+* [QScintilla](https://qscintilla.com/#home)
